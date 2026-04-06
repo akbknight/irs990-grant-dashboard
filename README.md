@@ -4,7 +4,7 @@ Interactive dashboard analyzing **$550B+ in grants** from IRS Form 990 filings (
 
 ## Live Dashboard
 
-👉 **[View the Dashboard](https://YOUR_USERNAME.github.io/irs990-grant-dashboard/)**
+👉 **[View the Dashboard](https://akbknight.github.io/irs990-grant-dashboard/)**
 
 ## Key Statistics
 
