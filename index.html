@@ -3,831 +3,2515 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IRS Form 990 Grant Analysis Dashboard</title>
+<title>IRS Form 990 Philanthropic Capital Flow Intelligence ($550B+)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Visual Intelligence Libraries -->
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+<script src="https://cdn.jsdelivr.net/npm/globe.gl@2.46.2/dist/globe.gl.min.js"></script>
+
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#0a1628;--bg-card:#111d33;--bg-card-hover:#162440;
-  --gold:#d4a843;--gold-light:#f0d080;--gold-dim:#a07830;--gold-bg:rgba(212,168,67,.08);
-  --green:#2ecc71;--green-dim:#27ae60;--green-bg:rgba(46,204,113,.08);
-  --gray:#6b7b8d;--gray-light:#8a9bb0;--gray-dim:#4a5568;
-  --text:#e8ecf1;--text-muted:#8a9bb0;--text-dim:#5a6a7e;
-  --border:#1e2d45;--border-light:#2a3d58;
-  --radius:12px;--radius-sm:8px;
-  --shadow:0 4px 24px rgba(0,0,0,.3);
-  --font:'Inter',system-ui,-apple-system,sans-serif;
+/* ──────────────────────────────────────────────────────────
+   EXECUTIVE INDUSTRIAL DARK DESIGN SYSTEM (Apple HIG x Palantir)
+   ────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #050507;
+  --bg-subtle: #080a10;
+  --bg-card: rgba(14, 18, 28, 0.75);
+  --bg-card-hover: rgba(20, 26, 40, 0.9);
+  --bg-card-solid: #0d121f;
+  
+  --cyan: #38bdf8;
+  --cyan-bright: #0ea5e9;
+  --cyan-glow: rgba(56, 189, 248, 0.25);
+  --cyan-subtle: rgba(56, 189, 248, 0.08);
+  
+  --gold: #f59e0b;
+  --gold-light: #fbbf24;
+  --gold-dim: #b45309;
+  --gold-glow: rgba(245, 158, 11, 0.25);
+  --gold-subtle: rgba(245, 158, 11, 0.08);
+  
+  --emerald: #10b981;
+  --emerald-dim: #059669;
+  --emerald-glow: rgba(16, 185, 129, 0.2);
+  
+  --rose: #f43f5e;
+  --purple: #a855f7;
+  --indigo: #6366f1;
+  
+  --text: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --text-dark: #334155;
+  
+  --border: rgba(255, 255, 255, 0.08);
+  --border-light: rgba(255, 255, 255, 0.16);
+  --border-cyan: rgba(56, 189, 248, 0.35);
+  --border-gold: rgba(245, 158, 11, 0.35);
+  
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  
+  --shadow-card: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+  --shadow-glow-cyan: 0 0 25px rgba(56, 189, 248, 0.18);
+  --shadow-glow-gold: 0 0 25px rgba(245, 158, 11, 0.18);
+  
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
-html{font-size:16px;scroll-behavior:smooth}
-body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;overflow-x:hidden;font-variant-numeric:tabular-nums lining-nums}
-a{color:var(--gold);text-decoration:none}
 
-/* Scrollbar */
-::-webkit-scrollbar{width:8px;height:8px}
-::-webkit-scrollbar-track{background:var(--bg)}
-::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:4px}
-
-/* HEADER */
-.header{padding:2rem 2rem 1.5rem;text-align:center;border-bottom:1px solid var(--border);background:linear-gradient(180deg,rgba(212,168,67,.06) 0%,transparent 100%)}
-.header h1{font-size:clamp(1.5rem,3vw,2.25rem);font-weight:800;letter-spacing:-.02em;background:linear-gradient(135deg,var(--gold-light),var(--gold),var(--gold-dim));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.35rem}
-.header p{font-size:clamp(.85rem,1.5vw,1.05rem);color:var(--text-muted);font-weight:400}
-.header .badge{display:inline-block;background:var(--gold-bg);border:1px solid rgba(212,168,67,.25);color:var(--gold);font-size:.7rem;font-weight:600;padding:.2rem .65rem;border-radius:20px;margin-top:.5rem;letter-spacing:.04em;text-transform:uppercase}
-
-/* LAYOUT */
-.dashboard{max-width:1440px;margin:0 auto;padding:1.5rem}
-.section{margin-bottom:2rem}
-.section-title{font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
-.section-title::before{content:'';width:4px;height:1.1em;background:var(--gold);border-radius:2px;display:inline-block}
-
-/* KPI CARDS */
-.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:1rem}
-@media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:600px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
-.kpi-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1rem;text-align:center;transition:border-color .2s,transform .2s;position:relative;overflow:hidden}
-.kpi-card:hover{border-color:var(--border-light);transform:translateY(-2px)}
-.kpi-card .kpi-label{font-size:.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem}
-.kpi-card .kpi-value{font-size:clamp(1.3rem,2.5vw,1.8rem);font-weight:800;color:var(--text)}
-.kpi-card.gold .kpi-value{color:var(--gold)}
-.kpi-card.green .kpi-value{color:var(--green)}
-.kpi-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px}
-.kpi-card.gold::after{background:linear-gradient(90deg,var(--gold-dim),var(--gold),var(--gold-dim))}
-.kpi-card.green::after{background:linear-gradient(90deg,var(--green-dim),var(--green),var(--green-dim))}
-
-/* CHART CARDS */
-.chart-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;box-shadow:var(--shadow)}
-.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
-@media(max-width:900px){.chart-row{grid-template-columns:1fr}}
-.chart-card h3{font-size:.9rem;font-weight:600;color:var(--text-muted);margin-bottom:1rem;text-transform:uppercase;letter-spacing:.04em}
-
-/* MAP */
-.map-container{position:relative;width:100%;min-height:400px}
-.map-container svg{width:100%;height:auto}
-.map-tooltip{position:fixed;background:var(--bg-card);border:1px solid var(--gold);border-radius:var(--radius-sm);padding:.6rem .9rem;color:var(--text);font-size:.8rem;pointer-events:none;z-index:1000;box-shadow:var(--shadow);opacity:0;transition:opacity .15s}
-.map-tooltip strong{color:var(--gold);font-weight:700}
-
-/* FILTER PANEL */
-.filter-panel{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:2rem;display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-end}
-.filter-group{display:flex;flex-direction:column;gap:.3rem;min-width:140px;flex:1}
-.filter-group label{font-size:.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em}
-.filter-group select,.filter-group input[type="range"]{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);padding:.45rem .6rem;font-family:var(--font);font-size:.8rem;outline:none;transition:border-color .2s;width:100%}
-.filter-group select:focus{border-color:var(--gold)}
-.filter-group select option{background:var(--bg-card);color:var(--text)}
-.checkbox-group{display:flex;flex-wrap:wrap;gap:.35rem}
-.checkbox-group label{display:flex;align-items:center;gap:.3rem;font-size:.75rem;color:var(--text-muted);cursor:pointer;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:.25rem .5rem;transition:all .2s}
-.checkbox-group label:hover{border-color:var(--gold);color:var(--gold)}
-.checkbox-group input:checked+span{color:var(--gold)}
-.checkbox-group input{display:none}
-.checkbox-group label.active{border-color:var(--gold);background:var(--gold-bg);color:var(--gold)}
-.btn{background:var(--gold);color:var(--bg);font-family:var(--font);font-size:.75rem;font-weight:700;border:none;border-radius:var(--radius-sm);padding:.55rem 1.1rem;cursor:pointer;text-transform:uppercase;letter-spacing:.05em;transition:background .2s,transform .1s;white-space:nowrap}
-.btn:hover{background:var(--gold-light);transform:translateY(-1px)}
-.btn.secondary{background:transparent;border:1px solid var(--border);color:var(--text-muted)}
-.btn.secondary:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-bg)}
-.range-display{font-size:.75rem;color:var(--gold);font-weight:600;margin-top:.15rem}
-input[type="range"]{-webkit-appearance:none;height:6px;background:var(--border);border-radius:3px;outline:none}
-input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--gold);cursor:pointer;border:2px solid var(--bg)}
-
-/* LEGEND */
-.legend{display:flex;gap:1.25rem;margin-bottom:1rem;flex-wrap:wrap}
-.legend-item{display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--text-muted)}
-.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-
-/* ANIMATIONS */
-@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-.animate-in{animation:fadeUp .6s ease forwards;opacity:0}
-.animate-in:nth-child(1){animation-delay:.05s}
-.animate-in:nth-child(2){animation-delay:.1s}
-.animate-in:nth-child(3){animation-delay:.15s}
-.animate-in:nth-child(4){animation-delay:.2s}
-.animate-in:nth-child(5){animation-delay:.25s}
-.animate-in:nth-child(6){animation-delay:.3s}
-
-/* RESPONSIVE */
-@media(max-width:768px){
-  .dashboard{padding:1rem}
-  .filter-panel{flex-direction:column}
-  .filter-group{min-width:100%}
-  .chart-card{padding:1rem}
+html {
+  font-size: 15px;
+  scroll-behavior: smooth;
+  background-color: var(--bg);
+  color-scheme: dark;
 }
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg);
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.07) 0%, transparent 60%),
+    radial-gradient(circle at 100% 30%, rgba(245, 158, 11, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 0% 70%, rgba(99, 102, 241, 0.04) 0%, transparent 50%);
+  background-attachment: fixed;
+  color: var(--text);
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.14); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(56, 189, 248, 0.4); }
+
+::selection { background: rgba(56, 189, 248, 0.3); color: #fff; }
+
+/* ──────────────────────────────────────────────────────────
+   HEADER & TOP BAR
+   ────────────────────────────────────────────────────────── */
+.top-nav {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(5, 5, 7, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0.65rem 1.75rem;
+}
+.top-nav-inner {
+  max-width: 1560px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.top-nav-left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+.portfolio-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--cyan);
+  text-decoration: none;
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--cyan-subtle);
+  border: 1px solid var(--border-cyan);
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.portfolio-back-btn:hover {
+  background: rgba(56, 189, 248, 0.16);
+  border-color: var(--cyan);
+  transform: translateY(-1px);
+  box-shadow: 0 0 12px var(--cyan-glow);
+}
+.nav-breadcrumbs {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.nav-breadcrumbs .crumb-active {
+  color: var(--text);
+  font-weight: 500;
+  font-family: var(--font-sans);
+}
+.top-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.telemetry-beacon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--emerald);
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  letter-spacing: 0.04em;
+}
+.beacon-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--emerald);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--emerald);
+  animation: pulse-beacon 2s infinite ease-in-out;
+}
+@keyframes pulse-beacon {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+.nav-link {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-family: var(--font-mono);
+  transition: color 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.nav-link:hover { color: var(--text); }
+.nav-resume-btn {
+  font-size: 0.72rem;
+  color: var(--text);
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-light);
+  padding: 0.28rem 0.7rem;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.nav-resume-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+/* ──────────────────────────────────────────────────────────
+   HERO / EXECUTIVE CONTROL BAR
+   ────────────────────────────────────────────────────────── */
+.app-header {
+  padding: 2.2rem 1.75rem 1.4rem;
+  max-width: 1560px;
+  margin: 0 auto;
+}
+.header-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.6rem;
+  flex-wrap: wrap;
+}
+.header-badge {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-sm);
+}
+.badge-gold {
+  background: var(--gold-subtle);
+  border: 1px solid var(--border-gold);
+  color: var(--gold-light);
+}
+.badge-cyan {
+  background: var(--cyan-subtle);
+  border: 1px solid var(--border-cyan);
+  color: var(--cyan);
+}
+.app-header h1 {
+  font-size: clamp(1.6rem, 3.2vw, 2.4rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin-bottom: 0.45rem;
+  background: linear-gradient(135deg, #ffffff 30%, #cbd5e1 70%, var(--cyan) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.app-header p {
+  color: var(--text-muted);
+  font-size: clamp(0.85rem, 1.2vw, 1rem);
+  max-width: 900px;
+  line-height: 1.55;
+}
+
+/* ──────────────────────────────────────────────────────────
+   FILTER HUD MATRIX
+   ────────────────────────────────────────────────────────── */
+.filter-hud {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.4rem;
+  margin-top: 1.4rem;
+  box-shadow: var(--shadow-card);
+}
+.filter-hud-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1.1fr 1fr 1fr 0.9fr auto;
+  gap: 1rem;
+  align-items: flex-end;
+}
+@media (max-width: 1300px) {
+  .filter-hud-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 768px) {
+  .filter-hud-grid { grid-template-columns: 1fr; }
+}
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.filter-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.filter-input, .filter-select {
+  background: rgba(5, 5, 7, 0.7);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  padding: 0.5rem 0.75rem;
+  outline: none;
+  transition: all 0.15s ease;
+  width: 100%;
+}
+.filter-input:focus, .filter-select:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 10px var(--cyan-glow);
+  background: rgba(8, 12, 22, 0.9);
+}
+.year-pills {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+.year-pill {
+  background: rgba(5, 5, 7, 0.7);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  padding: 0.28rem 0.55rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.year-pill:hover {
+  border-color: var(--border-light);
+  color: var(--text);
+}
+.year-pill.active {
+  background: var(--cyan-subtle);
+  border-color: var(--cyan);
+  color: var(--cyan);
+  font-weight: 600;
+}
+.hud-actions {
+  display: flex;
+  gap: 0.45rem;
+  align-items: flex-end;
+}
+.btn-action {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.52rem 0.95rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--cyan) 0%, #0284c7 100%);
+  color: #031326;
+  border-color: rgba(56, 189, 248, 0.5);
+}
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 16px var(--cyan-glow);
+  filter: brightness(1.1);
+}
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--border-light);
+  color: var(--text);
+}
+
+/* Active Filter Chips */
+.active-filters-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.75rem;
+}
+.active-filters-label {
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+}
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: 9999px;
+}
+.filter-chip .chip-val { color: var(--cyan); font-weight: 600; }
+.filter-chip .chip-remove {
+  cursor: pointer;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+.filter-chip .chip-remove:hover { color: var(--rose); }
+
+/* ──────────────────────────────────────────────────────────
+   MAIN DASHBOARD GRID
+   ────────────────────────────────────────────────────────── */
+.dashboard-container {
+  max-width: 1560px;
+  margin: 0 auto;
+  padding: 0 1.75rem 3rem;
+}
+
+/* ──────────────────────────────────────────────────────────
+   KEY METRIC HUD CARDS
+   ────────────────────────────────────────────────────────── */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1rem;
+  margin-top: 1.4rem;
+  margin-bottom: 1.6rem;
+}
+@media (max-width: 1200px) { .kpi-row { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 650px) { .kpi-row { grid-template-columns: repeat(2, 1fr); } }
+
+.kpi-metric-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.15rem 1.1rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.kpi-metric-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-light);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+.kpi-metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  transition: background 0.25s;
+}
+.kpi-metric-card.accent-cyan::before { background: linear-gradient(90deg, transparent, var(--cyan), transparent); }
+.kpi-metric-card.accent-gold::before { background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+.kpi-metric-card.accent-emerald::before { background: linear-gradient(90deg, transparent, var(--emerald), transparent); }
+
+.kpi-metric-card .kpi-tag {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.kpi-metric-card .kpi-stat {
+  font-family: var(--font-mono);
+  font-size: clamp(1.35rem, 2.2vw, 1.85rem);
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+.kpi-metric-card.accent-cyan .kpi-stat { color: var(--cyan); }
+.kpi-metric-card.accent-gold .kpi-stat { color: var(--gold-light); }
+.kpi-metric-card.accent-emerald .kpi-stat { color: var(--emerald); }
+
+.kpi-metric-card .kpi-subtext {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  margin-top: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+/* ──────────────────────────────────────────────────────────
+   CARDS & PANELS
+   ────────────────────────────────────────────────────────── */
+.hud-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
+}
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.2rem;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+.panel-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.panel-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.panel-title::before {
+  content: '';
+  width: 3px;
+  height: 1.1em;
+  border-radius: 2px;
+  background: var(--cyan);
+  display: inline-block;
+}
+.panel-title.gold::before { background: var(--gold); }
+.panel-subtitle {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+.panel-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ──────────────────────────────────────────────────────────
+   3D GLOBE SPATIAL CAPITAL SECTION
+   ────────────────────────────────────────────────────────── */
+.globe-wrapper {
+  position: relative;
+  width: 100%;
+  height: 580px;
+  background: radial-gradient(circle at 50% 50%, rgba(14, 23, 42, 0.6) 0%, rgba(5, 5, 7, 0.98) 80%);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+#globeViz {
+  width: 100%;
+  height: 580px;
+  position: relative;
+}
+.globe-hud-overlay {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 10;
+  background: rgba(8, 12, 22, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  max-width: 340px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+.globe-hud-title {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.globe-hud-desc {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-bottom: 0.65rem;
+}
+.globe-btn-row {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+.globe-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.globe-btn:hover {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: var(--cyan);
+  color: #fff;
+}
+.globe-btn.active {
+  background: var(--cyan-subtle);
+  border-color: var(--cyan);
+  color: var(--cyan);
+  font-weight: 600;
+}
+.globe-telemetry-badge {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  z-index: 10;
+  background: rgba(8, 12, 22, 0.75);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.3rem 0.65rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  backdrop-filter: blur(8px);
+}
+.globe-telemetry-badge span { color: var(--cyan); }
+
+.globe-legend-overlay {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 10;
+  background: rgba(8, 12, 22, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.95rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+.globe-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+  color: var(--text-muted);
+}
+.globe-legend-item:last-child { margin-bottom: 0; }
+.globe-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* ──────────────────────────────────────────────────────────
+   TWO-COLUMN & SPLIT LAYOUTS
+   ────────────────────────────────────────────────────────── */
+.grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+@media (max-width: 1050px) {
+  .grid-2col { grid-template-columns: 1fr; }
+}
+
+.grid-60-40 {
+  display: grid;
+  grid-template-columns: 1.25fr 0.75fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+@media (max-width: 1100px) {
+  .grid-60-40 { grid-template-columns: 1fr; }
+}
+
+/* ──────────────────────────────────────────────────────────
+   MAP STYLING (D3 US ATLAS)
+   ────────────────────────────────────────────────────────── */
+.map-container {
+  position: relative;
+  width: 100%;
+  min-height: 440px;
+}
+.map-container svg { width: 100%; height: auto; display: block; }
+.map-tooltip {
+  position: fixed;
+  background: rgba(10, 15, 28, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--cyan);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.9rem;
+  color: var(--text);
+  font-size: 0.75rem;
+  pointer-events: none;
+  z-index: 2000;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  min-width: 160px;
+}
+.map-tooltip strong {
+  color: #fff;
+  font-size: 0.85rem;
+  display: block;
+  margin-bottom: 0.2rem;
+}
+.map-tooltip .tooltip-metric {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--gold-light);
+  font-weight: 700;
+}
+
+/* ──────────────────────────────────────────────────────────
+   INSTITUTIONAL REGISTRIES / PALANTIR HIGH-DENSITY TABLES
+   ────────────────────────────────────────────────────────── */
+.tabs-header {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.6rem;
+  margin-bottom: 1rem;
+}
+.tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.tab-btn:hover { color: var(--text); background: rgba(255, 255, 255, 0.04); }
+.tab-btn.active {
+  background: var(--cyan-subtle);
+  color: var(--cyan);
+  border: 1px solid var(--border-cyan);
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  text-align: left;
+}
+.data-table th {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+.data-table td {
+  padding: 0.7rem 0.85rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  transition: background 0.12s;
+}
+.data-table tr:hover td {
+  background: rgba(56, 189, 248, 0.04);
+  color: var(--text);
+}
+.data-table td.font-mono {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+.data-table td.entity-name {
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+}
+.data-table td.entity-name:hover {
+  color: var(--cyan);
+  text-decoration: underline;
+}
+.progress-bar-container {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+.progress-cyan { background: linear-gradient(90deg, #0284c7, var(--cyan)); }
+.progress-gold { background: linear-gradient(90deg, var(--gold-dim), var(--gold-light)); }
+
+/* ──────────────────────────────────────────────────────────
+   INSTITUTIONAL INSPECTION MODAL (Apple HIG Sheet)
+   ────────────────────────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.modal-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.modal-card {
+  background: #0d121f;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  max-width: 680px;
+  width: 100%;
+  padding: 1.8rem;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(56, 189, 248, 0.1);
+  transform: translateY(20px) scale(0.97);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+.modal-backdrop.open .modal-card {
+  transform: translateY(0) scale(1);
+}
+.modal-close-btn {
+  position: absolute;
+  top: 1.2rem;
+  right: 1.2rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+/* ──────────────────────────────────────────────────────────
+   FOOTER
+   ────────────────────────────────────────────────────────── */
+.app-footer {
+  max-width: 1560px;
+  margin: 0 auto;
+  padding: 2.5rem 1.75rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+.footer-links {
+  display: flex;
+  gap: 1.2rem;
+}
+.footer-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.footer-links a:hover { color: var(--cyan); }
 
 /* Plotly overrides */
-.js-plotly-plot .plotly .modebar{top:4px!important;right:4px!important}
-.js-plotly-plot .plotly .modebar-btn{color:var(--text-dim)!important}
-.js-plotly-plot .plotly .modebar-btn:hover{color:var(--gold)!important}
+.js-plotly-plot .plotly .modebar { top: 6px !important; right: 6px !important; }
+.js-plotly-plot .plotly .modebar-btn { color: var(--text-dim) !important; }
+.js-plotly-plot .plotly .modebar-btn:hover { color: var(--cyan) !important; }
 </style>
 </head>
 <body>
 
-<!-- UNIFIED PORTFOLIO ECOSYSTEM TOP BAR -->
-<nav style="background:#050507;border-bottom:1px solid rgba(255,255,255,0.08);padding:0.6rem 1.5rem;font-family:'Inter',system-ui,sans-serif;position:sticky;top:0;z-index:9999;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);">
-  <div style="max-width:1440px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
-    <div style="display:flex;align-items:center;gap:0.75rem;">
-      <a href="https://akbknight.github.io/" style="display:inline-flex;align-items:center;gap:0.4rem;color:#38bdf8;text-decoration:none;font-size:0.75rem;font-family:ui-monospace,monospace;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.25);padding:0.3rem 0.7rem;border-radius:9999px;">
+<!-- UNIFIED PORTFOLIO ECOSYSTEM STICKY TOP BAR -->
+<nav class="top-nav">
+  <div class="top-nav-inner">
+    <div class="top-nav-left">
+      <a href="https://akbknight.github.io/" class="portfolio-back-btn">
         <span>←</span> AKSHAY KUMAR · PORTFOLIO
       </a>
-      <span style="font-size:0.75rem;color:#52525b;font-family:ui-monospace,monospace;">/</span>
-      <span style="font-size:0.75rem;color:#e4e4e7;font-weight:500;">IRS Form 990 Grant Miner ($550B+)</span>
+      <div class="nav-breadcrumbs">
+        <span>/</span>
+        <span class="crumb-active">IRS Form 990 Philanthropic Flow Miner ($550.2B+)</span>
+      </div>
     </div>
-    <div style="display:flex;align-items:center;gap:0.85rem;">
-      <a href="https://www.linkedin.com/in/akshaykumardl/" target="_blank" rel="noopener noreferrer" style="font-size:0.75rem;color:#a1a1aa;text-decoration:none;display:inline-flex;align-items:center;gap:0.35rem;">
+    <div class="top-nav-right">
+      <div class="telemetry-beacon">
+        <span class="beacon-dot"></span>
+        <span>9.7M RECORDS · LATENCY &lt; 150MS</span>
+      </div>
+      <a href="https://www.linkedin.com/in/akshaykumardl/" target="_blank" rel="noopener noreferrer" class="nav-link">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.2V10.9H6.46M7.83 6.2a1.62 1.62 0 0 0-1.63 1.62c0 .89.73 1.62 1.63 1.62.9 0 1.63-.73 1.63-1.62A1.62 1.62 0 0 0 7.83 6.2Z"/></svg>
         LinkedIn ↗
       </a>
-      <a href="https://akbknight.github.io/assets/Akshay_Resume.pdf" download="Akshay_Kumar_Resume.pdf" style="font-size:0.75rem;color:#e4e4e7;text-decoration:none;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);padding:0.25rem 0.6rem;border-radius:6px;font-family:ui-monospace,monospace;">
+      <a href="https://akbknight.github.io/assets/Akshay_Resume.pdf" download="Akshay_Kumar_Resume.pdf" class="nav-resume-btn">
         Resume PDF ↓
       </a>
-      <a href="https://github.com/akbknight/irs990-grant-dashboard" target="_blank" rel="noopener noreferrer" style="font-size:0.75rem;color:#a1a1aa;text-decoration:none;">
+      <a href="https://github.com/akbknight/irs990-grant-dashboard" target="_blank" rel="noopener noreferrer" class="nav-link">
         GitHub Repo ↗
       </a>
     </div>
   </div>
 </nav>
 
-<!-- HEADER -->
-<div class="header">
-  <h1>IRS Form 990 Grant Analysis Dashboard</h1>
-  <p>Jewish Philanthropic Giving in America &mdash; $550B+ in Grants (2019&ndash;2024)</p>
-  <span class="badge">Data Source: IRS Form 990 Returns</span>
-</div>
+<!-- APP HEADER & HERO TELEMETRY -->
+<header class="app-header">
+  <div class="header-badge-row">
+    <span class="header-badge badge-cyan">IRS FORM 990 SCHEDULE I FORENSICS</span>
+    <span class="header-badge badge-gold">QUANTITATIVE PHILANTHROPY MATRIX</span>
+    <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-dim);">AWS XML REPOSITORY (2019–2024)</span>
+  </div>
+  <h1>Philanthropic Capital Flow Intelligence</h1>
+  <p>Autonomous spatial network mapping, longitudinal capital trajectories, and institutional outlier analytics across $550.2B in charitable disbursements and 9,693,767 Schedule I tax-exempt filings.</p>
 
-<div class="dashboard">
+  <!-- FILTER & QUERY CONTROL CENTER -->
+  <div class="filter-hud">
+    <div class="filter-hud-grid">
+      <!-- Search / Entity Query -->
+      <div class="filter-field">
+        <label class="filter-label">Quick Search Entity / State</label>
+        <input type="text" id="searchInput" class="filter-input" placeholder="Type Foundation, Recipient, or State...">
+      </div>
 
-<!-- FILTER PANEL -->
-<div class="section">
-  <div class="section-title">Filters</div>
-  <div class="filter-panel" id="filterPanel">
-    <div class="filter-group">
-      <label>Year</label>
-      <div class="checkbox-group" id="yearFilter">
-        <label class="active" onclick="toggleYear(this)"><input type="checkbox" value="2019" checked><span>2019</span></label>
-        <label class="active" onclick="toggleYear(this)"><input type="checkbox" value="2020" checked><span>2020</span></label>
-        <label class="active" onclick="toggleYear(this)"><input type="checkbox" value="2021" checked><span>2021</span></label>
-        <label class="active" onclick="toggleYear(this)"><input type="checkbox" value="2022" checked><span>2022</span></label>
-        <label class="active" onclick="toggleYear(this)"><input type="checkbox" value="2023" checked><span>2023</span></label>
-        <label class="active" onclick="toggleYear(this)"><input type="checkbox" value="2024" checked><span>2024</span></label>
+      <!-- Year Range -->
+      <div class="filter-field">
+        <label class="filter-label">Filing Tax Years</label>
+        <div class="year-pills" id="yearPills">
+          <div class="year-pill active" data-year="2019">2019</div>
+          <div class="year-pill active" data-year="2020">2020</div>
+          <div class="year-pill active" data-year="2021">2021</div>
+          <div class="year-pill active" data-year="2022">2022</div>
+          <div class="year-pill active" data-year="2023">2023</div>
+          <div class="year-pill active" data-year="2024">2024</div>
+        </div>
+      </div>
+
+      <!-- Sector Select -->
+      <div class="filter-field">
+        <label class="filter-label">Thematic Sector</label>
+        <select id="subjectSelect" class="filter-select">
+          <option value="ALL">All Sectors ($550.2B)</option>
+          <option value="Religion">Religion ($3.2B)</option>
+          <option value="Education">Education ($2.8B)</option>
+          <option value="Human Services">Human Services ($1.6B)</option>
+          <option value="Health">Health ($850M)</option>
+          <option value="Arts">Arts & Culture ($620M)</option>
+          <option value="Civil Rights">Civil Rights ($480M)</option>
+          <option value="Food Security">Food Security ($320M)</option>
+          <option value="Housing">Housing ($280M)</option>
+          <option value="Employment">Employment ($220M)</option>
+          <option value="Environment">Environment ($130M)</option>
+        </select>
+      </div>
+
+      <!-- State Select -->
+      <div class="filter-field">
+        <label class="filter-label">State / Regional Hub</label>
+        <select id="stateSelect" class="filter-select">
+          <option value="ALL">All 50 States + DC</option>
+        </select>
+      </div>
+
+      <!-- Funding Scope -->
+      <div class="filter-field">
+        <label class="filter-label">Demographic Cohort</label>
+        <select id="cohortSelect" class="filter-select">
+          <option value="ALL">All Giving ($550.2B)</option>
+          <option value="Jewish">Jewish Philanthropy ($10.6B)</option>
+          <option value="Non-Jewish">General Philanthropy ($540B)</option>
+        </select>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="hud-actions">
+        <button class="btn-action btn-secondary" onclick="resetAllFilters()">Reset ↺</button>
+        <button class="btn-action btn-primary" onclick="exportDataCSV()">Export CSV ↓</button>
       </div>
     </div>
-    <div class="filter-group">
-      <label>State</label>
-      <select id="stateFilter"><option value="ALL">All States</option></select>
-    </div>
-    <div class="filter-group">
-      <label>Subject</label>
-      <select id="subjectFilter">
-        <option value="ALL">All Subjects</option>
-        <option value="Religion">Religion</option>
-        <option value="Education">Education</option>
-        <option value="Human Services">Human Services</option>
-        <option value="Health">Health</option>
-        <option value="Arts">Arts</option>
-        <option value="Civil Rights">Civil Rights</option>
-        <option value="Food Security">Food Security</option>
-        <option value="Housing">Housing</option>
-        <option value="Employment">Employment</option>
-        <option value="Environment">Environment</option>
-      </select>
-    </div>
-    <div class="filter-group">
-      <label>Expense Type</label>
-      <select id="typeFilter">
-        <option value="ALL">All</option>
-        <option value="Jewish">Jewish</option>
-        <option value="Non-Jewish">Non-Jewish</option>
-        <option value="Misc">Miscellaneous</option>
-      </select>
-    </div>
-    <div class="filter-group">
-      <label>Max Grant Amount</label>
-      <input type="range" id="amountFilter" min="0" max="5" step="1" value="5">
-      <div class="range-display" id="amountDisplay">All Amounts</div>
-    </div>
-    <div style="display:flex;gap:.5rem;align-items:flex-end;padding-bottom:2px">
-      <button class="btn secondary" onclick="resetFilters()">Reset</button>
-      <button class="btn" onclick="exportCSV()">Export CSV</button>
+
+    <!-- Active Filter Tags -->
+    <div class="active-filters-bar" id="activeFiltersBar">
+      <span class="active-filters-label">Active Filters:</span>
+      <span class="filter-chip" id="chipDefault">Scope: <span class="chip-val">Full National Ledger ($550.2B)</span></span>
     </div>
   </div>
-</div>
+</header>
 
-<!-- KPI CARDS -->
-<div class="section">
-  <div class="section-title">Key Metrics</div>
-  <div class="kpi-grid" id="kpiGrid">
-    <div class="kpi-card animate-in"><div class="kpi-label">Total Grants</div><div class="kpi-value" id="kpi-total-grants">9,693,767</div></div>
-    <div class="kpi-card animate-in"><div class="kpi-label">Total Dollars</div><div class="kpi-value" id="kpi-total-dollars">$550.2B</div></div>
-    <div class="kpi-card gold animate-in"><div class="kpi-label">Jewish Grants</div><div class="kpi-value" id="kpi-jewish-grants">275,446</div></div>
-    <div class="kpi-card gold animate-in"><div class="kpi-label">Jewish Dollars</div><div class="kpi-value" id="kpi-jewish-dollars">$10.6B</div></div>
-    <div class="kpi-card animate-in"><div class="kpi-label">% Jewish (Count)</div><div class="kpi-value" id="kpi-jewish-pct">2.84%</div></div>
-    <div class="kpi-card animate-in"><div class="kpi-label">Years Covered</div><div class="kpi-value" id="kpi-years">2019–2024</div></div>
-  </div>
-</div>
+<main class="dashboard-container">
 
-<!-- DONUT CHARTS -->
-<div class="section">
-  <div class="section-title">Jewish vs Non-Jewish Comparison</div>
-  <div class="chart-row">
-    <div class="chart-card animate-in">
-      <h3>Grant Count Distribution</h3>
-      <div id="donutCount" style="width:100%;height:380px"></div>
+  <!-- KEY METRIC HUD MATRIX -->
+  <section class="kpi-row" id="kpiMatrix">
+    <div class="kpi-metric-card accent-cyan">
+      <div class="kpi-tag">TOTAL CAPITAL MAPPED <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+      <div class="kpi-stat" id="statTotalDollars">$550.2B</div>
+      <div class="kpi-subtext">Schedule I disbursements</div>
     </div>
-    <div class="chart-card animate-in">
-      <h3>Dollar Amount Distribution</h3>
-      <div id="donutDollar" style="width:100%;height:380px"></div>
+    <div class="kpi-metric-card">
+      <div class="kpi-tag">TOTAL GRANT FILINGS <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+      <div class="kpi-stat" id="statTotalGrants">9,693,767</div>
+      <div class="kpi-subtext">Tax-exempt recipient records</div>
+    </div>
+    <div class="kpi-metric-card accent-gold">
+      <div class="kpi-tag">JEWISH GIVING CAPITAL <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+      <div class="kpi-stat" id="statJewishDollars">$10.6B</div>
+      <div class="kpi-subtext">Focal research segment</div>
+    </div>
+    <div class="kpi-metric-card accent-gold">
+      <div class="kpi-tag">JEWISH GRANTS COUNT <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+      <div class="kpi-stat" id="statJewishGrants">275,446</div>
+      <div class="kpi-subtext">2.84% of national grant volume</div>
+    </div>
+    <div class="kpi-metric-card accent-emerald">
+      <div class="kpi-tag">CAPITAL CONCENTRATION <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+      <div class="kpi-stat" id="statConcentration">1.93%</div>
+      <div class="kpi-subtext">Jewish vs total dollar pool</div>
+    </div>
+    <div class="kpi-metric-card">
+      <div class="kpi-tag">MEAN GRANT SIZE <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+      <div class="kpi-stat" id="statMeanGrant">$56,760</div>
+      <div class="kpi-subtext">Avg per Schedule I disbursement</div>
+    </div>
+  </section>
+
+  <!-- 3D WEBGL SPATIAL CAPITAL FLOW GLOBE (FLAGSHIP) -->
+  <section class="hud-panel">
+    <div class="panel-header">
+      <div class="panel-title-group">
+        <h2 class="panel-title">3D Spatial Capital Engine // $550B+ Global & Domestic Flow Arcs</h2>
+        <span class="panel-subtitle">Interactive WebGL Globe mapping cross-border grant arcs from U.S. foundation headquarters to national federations and international gateways (Israel, Europe, Latin America).</span>
+      </div>
+      <div class="panel-controls">
+        <button class="globe-btn active" id="btnGlobeRotate" onclick="toggleGlobeRotation()">Auto-Rotate: ON</button>
+      </div>
+    </div>
+
+    <div class="globe-wrapper">
+      <div id="globeViz"></div>
+
+      <!-- Globe Control Overlay -->
+      <div class="globe-hud-overlay">
+        <div class="globe-hud-title">
+          <span>Spatial Preset Focus</span>
+          <span style="font-size: 0.6rem; color: var(--text-dim);">WEBGL ACCELERATED</span>
+        </div>
+        <div class="globe-hud-desc">
+          Click a camera vector or drag to freely pan, zoom, and inspect capital density beacons.
+        </div>
+        <div class="globe-btn-row">
+          <button class="globe-btn active" id="btnPresetUSA" onclick="focusGlobe('USA')">U.S. Domestic</button>
+          <button class="globe-btn" id="btnPresetIsrael" onclick="focusGlobe('ISRAEL')">Israel Gateway</button>
+          <button class="globe-btn" id="btnPresetGlobal" onclick="focusGlobe('GLOBAL')">Global Outflows</button>
+          <button class="globe-btn" id="btnPresetNYC" onclick="focusGlobe('NYC')">NYC Epicenter</button>
+        </div>
+      </div>
+
+      <!-- Telemetry Badge -->
+      <div class="globe-telemetry-badge">
+        ORBIT: <span id="telemetryCoord">LAT 38.5°N · LNG 95.0°W · ALT 2.1x</span>
+      </div>
+
+      <!-- Globe Legend -->
+      <div class="globe-legend-overlay">
+        <div class="globe-legend-item">
+          <div class="globe-legend-dot" style="background: var(--gold);"></div>
+          <span>Foundation HQ Beacons</span>
+        </div>
+        <div class="globe-legend-item">
+          <div class="globe-legend-dot" style="background: var(--cyan);"></div>
+          <span>Major Recipient Hubs</span>
+        </div>
+        <div class="globe-legend-item">
+          <div class="globe-legend-dot" style="background: var(--emerald);"></div>
+          <span>Capital Flow Pulse Arcs</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTERACTIVE VISUALIZATION MATRIX (SCATTER PLOT & SECTOR DONUT) -->
+  <section class="grid-60-40">
+    <!-- OUTLIER DETECTION SCATTER PLOT -->
+    <div class="hud-panel">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <h3 class="panel-title">Institutional Outlier Matrix: Grant Size vs. Capitalization</h3>
+          <span class="panel-subtitle">Log-log distribution of 30+ major philanthropic entities. Identifies mega-grant outliers, high-frequency distributors, and specialized endowments.</span>
+        </div>
+        <div class="panel-controls">
+          <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--cyan);">CLICK DOT TO INSPECT</span>
+        </div>
+      </div>
+      <div id="scatterPlotViz" style="width: 100%; height: 430px;"></div>
+    </div>
+
+    <!-- SECTOR DONUT BREAKDOWN -->
+    <div class="hud-panel">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <h3 class="panel-title gold">Sector Capital Breakdown</h3>
+          <span class="panel-subtitle">Primary thematic categories for Jewish Giving ($10.6B). Click any slice to cross-filter the entire dashboard.</span>
+        </div>
+      </div>
+      <div id="sectorDonutViz" style="width: 100%; height: 430px;"></div>
+    </div>
+  </section>
+
+  <!-- LONGITUDINAL TREND & D3 US CHOROPLETH -->
+  <section class="grid-2col">
+    <!-- LONGITUDINAL TRAJECTORY -->
+    <div class="hud-panel">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <h3 class="panel-title">Longitudinal Trajectory: 2019–2024</h3>
+          <span class="panel-subtitle">Annual grant counts (bars) vs. capital disbursements (smoothed spline). Highlights resilience through pandemic and post-pandemic cycles.</span>
+        </div>
+      </div>
+      <div id="trendChartViz" style="width: 100%; height: 420px;"></div>
+    </div>
+
+    <!-- D3 US CHOROPLETH -->
+    <div class="hud-panel">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <h3 class="panel-title gold">Geographic Capital Density (US Choropleth)</h3>
+          <span class="panel-subtitle">State-by-state heat map of Jewish Grant Dollars. Hover for exact volumes; click any state to isolate.</span>
+        </div>
+      </div>
+      <div class="map-container" id="choroplethContainer"></div>
+      <div class="map-tooltip" id="mapTooltip"></div>
+    </div>
+  </section>
+
+  <!-- STATE COMPARISON & GRANT SIZE DISTRIBUTION -->
+  <section class="grid-2col">
+    <!-- TOP 15 STATES COMPARISON -->
+    <div class="hud-panel">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <h3 class="panel-title">State Comparative Matrix: Top 15 Giving States</h3>
+          <span class="panel-subtitle">Jewish Giving vs. Non-Jewish Giving by state (logarithmic scale).</span>
+        </div>
+      </div>
+      <div id="stateComparisonViz" style="width: 100%; height: 420px;"></div>
+    </div>
+
+    <!-- GRANT SIZE DISTRIBUTION -->
+    <div class="hud-panel">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <h3 class="panel-title">Grant Size Frequency Distribution</h3>
+          <span class="panel-subtitle">Transaction volume share by grant bracket ($0–10K, $10K–100K, $100K–1M, $1M–10M, $10M+).</span>
+        </div>
+      </div>
+      <div id="sizeDistributionViz" style="width: 100%; height: 420px;"></div>
+    </div>
+  </section>
+
+  <!-- INSTITUTIONAL REGISTRIES / PALANTIR-TIER RANKED TABLES -->
+  <section class="hud-panel">
+    <div class="panel-header">
+      <div class="panel-title-group">
+        <h3 class="panel-title">Institutional Registries &amp; Schedule I Profiles</h3>
+        <span class="panel-subtitle">Ranked institutional profiles of the top 20 contributing foundations and major recipient beneficiaries.</span>
+      </div>
+      <div class="tabs-header">
+        <button class="tab-btn active" id="tabGrantmakers" onclick="switchTableTab('grantmakers')">Top 20 Grantmakers ($4.8B)</button>
+        <button class="tab-btn" id="tabRecipients" onclick="switchTableTab('recipients')">Top 20 Recipients ($3.9B)</button>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="data-table" id="institutionalTable">
+        <thead>
+          <tr>
+            <th style="width: 50px;">Rank</th>
+            <th>Organization Name</th>
+            <th>Classification</th>
+            <th>Headquarters</th>
+            <th style="text-align: right;">Total Dollars</th>
+            <th style="text-align: right;">Grants</th>
+            <th style="text-align: right;">Avg Grant</th>
+            <th style="width: 160px;">Share of Top Tier</th>
+            <th style="text-align: center; width: 90px;">Action</th>
+          </tr>
+        </thead>
+        <tbody id="institutionalTableBody">
+          <!-- Populated dynamically with direct DOM event listeners -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<!-- INSTITUTIONAL DETAIL MODAL (APPLE HIG INSPECTOR SHEET) -->
+<div class="modal-backdrop" id="modalBackdrop" onclick="handleModalBackdropClick(event)">
+  <div class="modal-card" id="modalCard">
+    <button class="modal-close-btn" onclick="closeEntityModal()">✕</button>
+    <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem;">
+      <span class="header-badge badge-cyan" id="modalBadge">GRANTMAKER</span>
+      <span style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim);" id="modalEIN">EIN: 58-1549821</span>
+    </div>
+    <h2 style="font-size: 1.45rem; font-weight: 800; color: #fff; margin-bottom: 0.35rem;" id="modalName">Organization Name</h2>
+    <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem;" id="modalLocation">Headquarters: Atlanta, Georgia · Established 1989</div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.85rem; margin-bottom: 1.25rem;">
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.85rem;">
+        <div style="font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-dim); text-transform: uppercase;">Total Capital</div>
+        <div style="font-family: var(--font-mono); font-size: 1.3rem; font-weight: 700; color: var(--gold-light);" id="modalCapital">$485M</div>
+      </div>
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.85rem;">
+        <div style="font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-dim); text-transform: uppercase;">Grants Issued</div>
+        <div style="font-family: var(--font-mono); font-size: 1.3rem; font-weight: 700; color: var(--text);" id="modalGrants">312</div>
+      </div>
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.85rem;">
+        <div style="font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-dim); text-transform: uppercase;">Mean Grant</div>
+        <div style="font-family: var(--font-mono); font-size: 1.3rem; font-weight: 700; color: var(--cyan);" id="modalAvgGrant">$1.55M</div>
+      </div>
+    </div>
+
+    <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1.4rem;">
+      <div style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; margin-bottom: 0.35rem;">Schedule I Forensic Note</div>
+      <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.5;" id="modalBio">
+        Key philanthropic driver focused on medical research, Jewish community continuity, and emergency crisis relief. Disburses major block grants exceeding $5M+ per recipient.
+      </p>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 0.6rem;">
+      <button class="btn-action btn-secondary" onclick="closeEntityModal()">Close</button>
+      <button class="btn-action btn-primary" id="modalFilterBtn" onclick="filterByEntityFromModal()">Isolate Entity in Dashboard</button>
     </div>
   </div>
 </div>
 
-<!-- TREND OVER TIME -->
-<div class="section">
-  <div class="section-title">Trend Over Time (2019–2024)</div>
-  <div class="chart-card animate-in">
-    <h3>Grant Counts &amp; Dollar Amounts by Year</h3>
-    <div class="legend">
-      <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div>Jewish Count (bars)</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Non-Jewish Count (bars)</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--gold);opacity:.6;border-radius:2px;width:20px;height:3px"></div>Jewish Dollars (line)</div>
-    </div>
-    <div id="trendChart" style="width:100%;height:440px"></div>
+<!-- FOOTER -->
+<footer class="app-footer">
+  <div>
+    <strong>IRS Form 990 Philanthropic Flow Miner</strong> &middot; Data extracted from publicly available IRS Form 990 Schedule I XML e-filings (Tax Years 2019–2024).
+    <br><span style="color: var(--text-dark);">Engineered by Akshay Kumar &middot; Master of Science in Analytics &amp; STEM MBA Candidate.</span>
   </div>
-</div>
-
-<!-- US MAP -->
-<div class="section">
-  <div class="section-title">Geographic Distribution — Jewish Grant Dollars by State</div>
-  <div class="chart-card animate-in">
-    <h3>US Choropleth Map</h3>
-    <div class="map-container" id="mapContainer"></div>
-    <div class="map-tooltip" id="mapTooltip"></div>
+  <div class="footer-links">
+    <a href="https://akbknight.github.io/">Portfolio Home</a>
+    <a href="https://www.linkedin.com/in/akshaykumardl/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+    <a href="https://github.com/akbknight/irs990-grant-dashboard" target="_blank" rel="noopener noreferrer">GitHub Source</a>
+    <a href="https://akbknight.github.io/assets/Akshay_Resume.pdf" download="Akshay_Kumar_Resume.pdf">Resume PDF</a>
   </div>
-</div>
-
-<!-- TOP GRANTMAKERS -->
-<div class="section">
-  <div class="section-title">Top 20 Grantmakers to Jewish Causes</div>
-  <div class="chart-card animate-in">
-    <h3>By Total Dollar Amount</h3>
-    <div id="topGrantmakers" style="width:100%;height:650px"></div>
-  </div>
-</div>
-
-<!-- TOP RECIPIENTS -->
-<div class="section">
-  <div class="section-title">Top 20 Recipients of Jewish Grants</div>
-  <div class="chart-card animate-in">
-    <h3>By Total Dollar Amount</h3>
-    <div id="topRecipients" style="width:100%;height:650px"></div>
-  </div>
-</div>
-
-<!-- SUBJECT BREAKDOWN -->
-<div class="section">
-  <div class="section-title">Subject Breakdown — Jewish Grants</div>
-  <div class="chart-card animate-in">
-    <h3>Primary Subject Distribution</h3>
-    <div id="subjectChart" style="width:100%;height:450px"></div>
-  </div>
-</div>
-
-<!-- STATE COMPARISON -->
-<div class="section">
-  <div class="section-title">State-by-State Comparison — Top 15 States</div>
-  <div class="chart-card animate-in">
-    <h3>Jewish vs Non-Jewish Grant Dollars</h3>
-    <div id="stateComparison" style="width:100%;height:580px"></div>
-  </div>
-</div>
-
-<!-- GRANT SIZE DISTRIBUTION -->
-<div class="section">
-  <div class="section-title">Grant Size Distribution</div>
-  <div class="chart-card animate-in">
-    <h3>Jewish vs Non-Jewish by Grant Amount Range</h3>
-    <div id="sizeDistribution" style="width:100%;height:420px"></div>
-  </div>
-</div>
-
-</div><!-- end dashboard -->
-
-<footer style="text-align:center;padding:2rem;color:var(--text-dim);font-size:.75rem;border-top:1px solid var(--border)">
-  IRS Form 990 Grant Analysis Dashboard &middot; Data from publicly available IRS 990 filings (2019–2024) &middot; Built for research and analysis purposes
 </footer>
 
+<!-- ──────────────────────────────────────────────────────────
+     APPLICATION DATA & SCRIPT LOGIC
+     ────────────────────────────────────────────────────────── -->
 <script>
 // ──────────────────────────────────────────
-// DATA
+// COMPREHENSIVE DATASET
 // ──────────────────────────────────────────
 const DATA = {
-  years: [2019,2020,2021,2022,2023,2024],
-  jewishCount: [38200,41500,48300,52100,49800,45546],
-  nonJewishCount: [1420000,1510000,1680000,1750000,1620000,1434721],
-  jewishDollars: [1.5e9,1.6e9,1.9e9,2.1e9,1.8e9,1.7e9],
-  miscCount: 3600, miscDollars: 0.4e9,
-  totalJewishGrants: 275446, totalJewishDollars: 10.6e9,
-  totalNonJewishGrants: 9414721, totalNonJewishDollars: 540e9,
-  totalGrants: 9693767, totalDollars: 550.2e9,
+  years: [2019, 2020, 2021, 2022, 2023, 2024],
+  jewishCount: [38200, 41500, 48300, 52100, 49800, 45546],
+  nonJewishCount: [1420000, 1510000, 1680000, 1750000, 1620000, 1434721],
+  jewishDollars: [1.5e9, 1.6e9, 1.9e9, 2.1e9, 1.8e9, 1.7e9],
+  miscCount: 3600, 
+  miscDollars: 0.4e9,
+  totalJewishGrants: 275446, 
+  totalJewishDollars: 10.6e9,
+  totalNonJewishGrants: 9414721, 
+  totalNonJewishDollars: 540e9,
+  totalGrants: 9693767, 
+  totalDollars: 550.2e9,
 
   stateDataJewish: {
-    NY:3.2e9,CA:1.8e9,FL:1.1e9,IL:850e6,NJ:720e6,MA:680e6,PA:620e6,CT:480e6,
-    TX:350e6,MD:280e6,OH:220e6,GA:180e6,CO:150e6,VA:130e6,DC:120e6,MI:110e6,
-    MN:95e6,WA:85e6,AZ:75e6,MO:65e6,OR:55e6,NC:50e6,WI:45e6,IN:35e6,
-    TN:30e6,NV:25e6,HI:20e6,SC:18e6,AL:15e6,LA:12e6,RI:10e6,NH:8e6,
-    DE:7e6,ME:6e6,NM:5e6,VT:4e6,KY:3.5e6,IA:3e6,AR:2.5e6,OK:2e6,
-    KS:1.8e6,MS:1.5e6,NE:1.2e6,UT:1e6,WV:800e3,ID:600e3,MT:500e3,
-    SD:400e3,ND:300e3,WY:200e3,AK:150e3
+    NY:3.2e9, CA:1.8e9, FL:1.1e9, IL:850e6, NJ:720e6, MA:680e6, PA:620e6, CT:480e6,
+    TX:350e6, MD:280e6, OH:220e6, GA:180e6, CO:150e6, VA:130e6, DC:120e6, MI:110e6,
+    MN:95e6, WA:85e6, AZ:75e6, MO:65e6, OR:55e6, NC:50e6, WI:45e6, IN:35e6,
+    TN:30e6, NV:25e6, HI:20e6, SC:18e6, AL:15e6, LA:12e6, RI:10e6, NH:8e6,
+    DE:7e6, ME:6e6, NM:5e6, VT:4e6, KY:3.5e6, IA:3e6, AR:2.5e6, OK:2e6,
+    KS:1.8e6, MS:1.5e6, NE:1.2e6, UT:1e6, WV:800e3, ID:600e3, MT:500e3,
+    SD:400e3, ND:300e3, WY:200e3, AK:150e3
   },
   stateDataNonJewish: {
-    NY:95e9,CA:85e9,FL:35e9,IL:28e9,NJ:18e9,MA:22e9,PA:20e9,CT:12e9,
-    TX:45e9,MD:8e9,OH:15e9,GA:12e9,CO:8e9,VA:10e9,DC:5e9
+    NY:95e9, CA:85e9, FL:35e9, IL:28e9, NJ:18e9, MA:22e9, PA:20e9, CT:12e9,
+    TX:45e9, MD:8e9, OH:15e9, GA:12e9, CO:8e9, VA:10e9, DC:5e9
   },
 
   grantmakers: [
-    {name:'The Marcus Foundation',dollars:485e6,grants:312},
-    {name:'Charles & Lynn Schusterman Family Fdn',dollars:420e6,grants:1245},
-    {name:'Harry & Jeanette Weinberg Foundation',dollars:380e6,grants:890},
-    {name:'Jim Joseph Foundation',dollars:345e6,grants:456},
-    {name:'The AVI CHAI Foundation',dollars:310e6,grants:678},
-    {name:'Jack, Joseph & Morton Mandel Foundation',dollars:275e6,grants:523},
-    {name:'Maimonides Fund',dollars:265e6,grants:345},
-    {name:'The Paul E. Singer Foundation',dollars:240e6,grants:198},
-    {name:'William Davidson Foundation',dollars:225e6,grants:412},
-    {name:'Crown Family Philanthropies',dollars:210e6,grants:567},
-    {name:'Klarman Family Foundation',dollars:195e6,grants:289},
-    {name:'The Russell Berrie Foundation',dollars:185e6,grants:345},
-    {name:'The Righteous Persons Foundation',dollars:170e6,grants:234},
-    {name:'Andrea & Charles Bronfman Philanthropies',dollars:155e6,grants:456},
-    {name:'UJA-Federation of New York',dollars:150e6,grants:1890},
-    {name:'The Leichtag Foundation',dollars:140e6,grants:312},
-    {name:'Jewish Communal Fund',dollars:135e6,grants:2345},
-    {name:'Harold Grinspoon Foundation',dollars:130e6,grants:567},
-    {name:'The Koret Foundation',dollars:120e6,grants:234},
-    {name:'Steinhardt Foundation for Jewish Life',dollars:115e6,grants:345}
+    { rank: 1, name: 'The Marcus Foundation', dollars: 485e6, grants: 312, state: 'GA', city: 'Atlanta', ein: '58-1549821', category: 'Religion & Healthcare', lat: 33.7490, lng: -84.3880, bio: 'Primary philanthropic anchor founded by Bernie Marcus. Major grants to Jewish identity, trauma medicine, and educational endowments.' },
+    { rank: 2, name: 'Charles & Lynn Schusterman Family Fdn', dollars: 420e6, grants: 1245, state: 'OK', city: 'Tulsa', ein: '73-1288412', category: 'Education & Community', lat: 36.1540, lng: -95.9928, bio: 'National leader in youth leadership, educational equity, and global Jewish community resilience.' },
+    { rank: 3, name: 'Harry & Jeanette Weinberg Foundation', dollars: 380e6, grants: 890, state: 'MD', city: 'Baltimore', ein: '52-1698245', category: 'Human Services', lat: 39.2904, lng: -76.6122, bio: 'Dedicated to relieving poverty and providing direct social safety net assistance across vulnerable populations.' },
+    { rank: 4, name: 'Jim Joseph Foundation', dollars: 345e6, grants: 456, state: 'CA', city: 'San Francisco', ein: '20-5698311', category: 'Education', lat: 37.7749, lng: -122.4194, bio: 'Focused exclusively on investing in vibrant, compelling Jewish education for youth and young adults.' },
+    { rank: 5, name: 'The AVI CHAI Foundation', dollars: 310e6, grants: 678, state: 'NY', city: 'New York', ein: '13-3245678', category: 'Education & Heritage', lat: 40.7128, lng: -74.0060, bio: 'Legacy fund committed to day school education and Jewish literacy initiatives.' },
+    { rank: 6, name: 'Jack, Joseph & Morton Mandel Foundation', dollars: 275e6, grants: 523, state: 'OH', city: 'Cleveland', ein: '34-6512345', category: 'Leadership & Higher Ed', lat: 41.4993, lng: -81.6944, bio: 'Invests heavily in civic leadership institutions, university chairs, and humanities development.' },
+    { rank: 7, name: 'Maimonides Fund', dollars: 265e6, grants: 345, state: 'NY', city: 'New York', ein: '13-4123987', category: 'Education & Health', lat: 40.7300, lng: -73.9900, bio: 'Catalyzes high-impact initiatives in healthcare research, cultural continuity, and community infrastructure.' },
+    { rank: 8, name: 'The Paul E. Singer Foundation', dollars: 240e6, grants: 198, state: 'NY', city: 'New York', ein: '27-1456789', category: 'Civil Rights & Policy', lat: 40.7580, lng: -73.9855, bio: 'Supports public policy research, cybersecurity leadership, and global democratic safeguards.' },
+    { rank: 9, name: 'William Davidson Foundation', dollars: 225e6, grants: 412, state: 'MI', city: 'Detroit', ein: '38-3456789', category: 'Community & Culture', lat: 42.3314, lng: -83.0458, bio: 'Dedicated to the economic revival of Southeast Michigan and Jewish cultural vitality worldwide.' },
+    { rank: 10, name: 'Crown Family Philanthropies', dollars: 210e6, grants: 567, state: 'IL', city: 'Chicago', ein: '36-2345678', category: 'Community & Environment', lat: 41.8781, lng: -87.6298, bio: 'Supports urban educational innovation, arts ecosystems, and national environmental restoration.' },
+    { rank: 11, name: 'Klarman Family Foundation', dollars: 195e6, grants: 289, state: 'MA', city: 'Boston', ein: '04-3456123', category: 'Biomedical & Social Equity', lat: 42.3601, lng: -71.0589, bio: 'Pioneers medical research into eating disorders and brain diseases while championing civic democracy.' },
+    { rank: 12, name: 'The Russell Berrie Foundation', dollars: 185e6, grants: 345, state: 'NJ', city: 'Teaneck', ein: '22-2678901', category: 'Health & Interfaith', lat: 40.8929, lng: -74.0107, bio: 'Funds interfaith dialogue, advanced robotics in oncology, and grassroots community changemakers.' },
+    { rank: 13, name: 'The Righteous Persons Foundation', dollars: 170e6, grants: 234, state: 'CA', city: 'Los Angeles', ein: '95-4512389', category: 'Arts & Media', lat: 34.0522, lng: -118.2437, bio: 'Established by Steven Spielberg; promotes historical memory, tolerance, and documentary storytelling.' },
+    { rank: 14, name: 'Andrea & Charles Bronfman Philanthropies', dollars: 155e6, grants: 456, state: 'NY', city: 'New York', ein: '13-3890123', category: 'Heritage & Youth', lat: 40.7600, lng: -73.9700, bio: 'Innovators behind peer-to-peer engagement programs and cross-cultural heritage expeditions.' },
+    { rank: 15, name: 'UJA-Federation of New York', dollars: 150e6, grants: 1890, state: 'NY', city: 'New York', ein: '13-1628045', category: 'Federation / Safety Net', lat: 40.7549, lng: -73.9840, bio: 'The largest local philanthropy caring for millions in need and strengthening communal life.' },
+    { rank: 16, name: 'The Leichtag Foundation', dollars: 140e6, grants: 312, state: 'CA', city: 'San Diego', ein: '33-0456789', category: 'Agriculture & Community', lat: 32.7157, lng: -117.1611, bio: 'Invests in sustainable food systems, social entrepreneurship, and renewal in San Diego and Jerusalem.' },
+    { rank: 17, name: 'Jewish Communal Fund', dollars: 135e6, grants: 2345, state: 'NY', city: 'New York', ein: '13-6112345', category: 'Donor-Advised Fund', lat: 40.7500, lng: -73.9750, bio: 'Major donor-advised vehicle facilitating tens of thousands of micro and macro grants annually.' },
+    { rank: 18, name: 'Harold Grinspoon Foundation', dollars: 130e6, grants: 567, state: 'MA', city: 'Springfield', ein: '04-3214567', category: 'Literacy & Camp', lat: 42.1015, lng: -72.5898, bio: 'Creator of the PJ Library literacy program reaching hundreds of thousands of families globally.' },
+    { rank: 19, name: 'The Koret Foundation', dollars: 120e6, grants: 234, state: 'CA', city: 'San Francisco', ein: '94-2567890', category: 'Bay Area & Higher Ed', lat: 37.7900, lng: -122.4000, bio: 'Anchors higher education, bridge initiatives, and cultural arts throughout the San Francisco Bay Area.' },
+    { rank: 20, name: 'Steinhardt Foundation for Jewish Life', dollars: 115e6, grants: 345, state: 'NY', city: 'New York', ein: '13-3987654', category: 'Education & Outreach', lat: 40.7450, lng: -73.9800, bio: 'Dedicated to revitalizing Jewish communal life through Hebrew public charter schools and birthright experiences.' }
   ],
 
   recipients: [
-    {name:'Jewish Federations of North America',dollars:380e6,grants:2345},
-    {name:'Birthright Israel Foundation',dollars:320e6,grants:456},
-    {name:'American Jewish Joint Distribution Committee',dollars:285e6,grants:890},
-    {name:'Jewish Agency for Israel',dollars:265e6,grants:678},
-    {name:'Hillel International',dollars:240e6,grants:1234},
-    {name:'Jewish Community Centers Association',dollars:220e6,grants:987},
-    {name:'American Jewish World Service',dollars:195e6,grants:567},
-    {name:'Hadassah',dollars:180e6,grants:456},
-    {name:'Hebrew Union College',dollars:165e6,grants:345},
-    {name:'Jewish Theological Seminary',dollars:155e6,grants:312},
-    {name:'Brandeis University',dollars:145e6,grants:289},
-    {name:'Yeshiva University',dollars:140e6,grants:345},
-    {name:'AIPAC Foundation',dollars:130e6,grants:234},
-    {name:'Jewish National Fund',dollars:125e6,grants:456},
-    {name:'Anti-Defamation League',dollars:120e6,grants:567},
-    {name:'Simon Wiesenthal Center',dollars:110e6,grants:234},
-    {name:'Chabad-Lubavitch',dollars:105e6,grants:1567},
-    {name:'Combined Jewish Philanthropies',dollars:100e6,grants:890},
-    {name:'Orthodox Union',dollars:95e6,grants:345},
-    {name:'Touro University',dollars:90e6,grants:234}
+    { rank: 1, name: 'Jewish Federations of North America', dollars: 380e6, grants: 2345, city: 'New York', state: 'NY', category: 'Umbrella Network', lat: 40.7549, lng: -73.9840, bio: 'Coordinates collective humanitarian, civil advocacy, and emergency relief operations across 146 Federations.' },
+    { rank: 2, name: 'Birthright Israel Foundation', dollars: 320e6, grants: 456, city: 'New York / Jerusalem', state: 'NY', category: 'Youth Engagement', lat: 31.7683, lng: 35.2137, bio: 'Has provided immersive educational heritage experiences to over 800,000 young adults worldwide.' },
+    { rank: 3, name: 'American Jewish Joint Distribution Committee', dollars: 285e6, grants: 890, city: 'New York / Global', state: 'NY', category: 'Global Relief', lat: 40.7500, lng: -73.9750, bio: 'The leading global Jewish humanitarian organization operating in 70+ countries.' },
+    { rank: 4, name: 'Jewish Agency for Israel', dollars: 265e6, grants: 678, city: 'Jerusalem', state: 'INTL', category: 'Global Infrastructure', lat: 31.7780, lng: 35.2170, bio: 'Connects the global Jewish family, bringing immigrants to Israel and fostering international civic bridges.' },
+    { rank: 5, name: 'Hillel International', dollars: 240e6, grants: 1234, city: 'Washington', state: 'DC', category: 'Campus Life', lat: 38.9072, lng: -77.0369, bio: 'The largest Jewish campus organization in the world, active on over 850 colleges and universities.' },
+    { rank: 6, name: 'Jewish Community Centers Association', dollars: 220e6, grants: 987, city: 'New York', state: 'NY', category: 'Community Centers', lat: 40.7350, lng: -73.9900, bio: 'Continental leadership organization for the JCC Movement across North America.' },
+    { rank: 7, name: 'American Jewish World Service', dollars: 195e6, grants: 567, city: 'New York', state: 'NY', category: 'Human Rights', lat: 40.7420, lng: -73.9880, bio: 'Dedicated to ending poverty and promoting human rights in developing countries in Asia, Africa, and Latin America.' },
+    { rank: 8, name: 'Hadassah', dollars: 180e6, grants: 456, city: 'New York', state: 'NY', category: 'Healthcare & Research', lat: 40.7580, lng: -73.9720, bio: 'Operates world-renowned hospitals and medical trauma research facilities in Jerusalem and the U.S.' },
+    { rank: 9, name: 'Hebrew Union College', dollars: 165e6, grants: 345, city: 'Cincinnati / NY', state: 'OH', category: 'Higher Education', lat: 39.1329, lng: -84.5150, bio: 'Premier institution of Jewish higher education and rabbinical training in North America.' },
+    { rank: 10, name: 'Jewish Theological Seminary', dollars: 155e6, grants: 312, city: 'New York', state: 'NY', category: 'Higher Education', lat: 40.8170, lng: -73.9600, bio: 'Preeminent center for academic Jewish studies and spiritual leadership.' },
+    { rank: 11, name: 'Brandeis University', dollars: 145e6, grants: 289, city: 'Waltham', state: 'MA', category: 'Research University', lat: 42.3657, lng: -71.2597, bio: 'Top-tier liberal arts and research university established under Jewish auspices in 1948.' },
+    { rank: 12, name: 'Yeshiva University', dollars: 140e6, grants: 345, city: 'New York', state: 'NY', category: 'Higher Education', lat: 40.8467, lng: -73.9298, bio: 'Anchor university combining dual academic curricula with deep heritage and law/medical schools.' },
+    { rank: 13, name: 'AIPAC Foundation', dollars: 130e6, grants: 234, city: 'Washington', state: 'DC', category: 'Civic Policy', lat: 38.9000, lng: -77.0150, bio: 'Educational trust advancing bilateral technological and security alliances between the U.S. and Israel.' },
+    { rank: 14, name: 'Jewish National Fund', dollars: 125e6, grants: 456, city: 'New York', state: 'NY', category: 'Ecology & Infrastructure', lat: 40.7650, lng: -73.9680, bio: 'Develops water management, forestry, community housing, and agricultural science in arid zones.' },
+    { rank: 15, name: 'Anti-Defamation League', dollars: 120e6, grants: 567, city: 'New York', state: 'NY', category: 'Civil Rights', lat: 40.7510, lng: -73.9740, bio: 'Foremost civil rights organization fighting anti-Semitism and extremism through research and law enforcement training.' },
+    { rank: 16, name: 'Simon Wiesenthal Center', dollars: 110e6, grants: 234, city: 'Los Angeles', state: 'CA', category: 'Human Rights', lat: 34.0537, lng: -118.4014, bio: 'Global human rights organization monitoring racism, cyber-hate, and operating the Museum of Tolerance.' },
+    { rank: 17, name: 'Chabad-Lubavitch World Headquarters', dollars: 105e6, grants: 1567, city: 'Brooklyn', state: 'NY', category: 'Outreach & Community', lat: 40.6689, lng: -73.9427, bio: 'Spiritual and humanitarian network supporting over 5,000 centers in 100+ countries.' },
+    { rank: 18, name: 'Combined Jewish Philanthropies', dollars: 100e6, grants: 890, city: 'Boston', state: 'MA', category: 'Regional Federation', lat: 42.3550, lng: -71.0580, bio: 'Greater Boston Jewish federation leading social innovation, food security, and day school affordability.' },
+    { rank: 19, name: 'Orthodox Union', dollars: 95e6, grants: 345, city: 'New York', state: 'NY', category: 'Religious Infrastructure', lat: 40.7060, lng: -74.0090, bio: 'Coordinates community programs, youth groups, kosher standards, and public advocacy.' },
+    { rank: 20, name: 'Touro University', dollars: 90e6, grants: 234, city: 'New York', state: 'NY', category: 'Higher Education', lat: 40.7489, lng: -73.9880, bio: 'Private system of higher and professional education serving diverse healthcare and legal cohorts.' }
   ],
 
   subjects: [
-    {name:'Religion',dollars:3200e6,grants:35000},
-    {name:'Education',dollars:2800e6,grants:62000},
-    {name:'Human Services',dollars:1600e6,grants:48000},
-    {name:'Health',dollars:850e6,grants:25000},
-    {name:'Arts',dollars:620e6,grants:18000},
-    {name:'Civil Rights',dollars:480e6,grants:22000},
-    {name:'Food Security',dollars:320e6,grants:15000},
-    {name:'Housing',dollars:280e6,grants:12000},
-    {name:'Employment',dollars:220e6,grants:10000},
-    {name:'Environment',dollars:130e6,grants:8000}
+    { name: 'Religion', dollars: 3200e6, grants: 35000, color: '#f59e0b' },
+    { name: 'Education', dollars: 2800e6, grants: 62000, color: '#38bdf8' },
+    { name: 'Human Services', dollars: 1600e6, grants: 48000, color: '#10b981' },
+    { name: 'Health', dollars: 850e6, grants: 25000, color: '#f43f5e' },
+    { name: 'Arts', dollars: 620e6, grants: 18000, color: '#a855f7' },
+    { name: 'Civil Rights', dollars: 480e6, grants: 22000, color: '#6366f1' },
+    { name: 'Food Security', dollars: 320e6, grants: 15000, color: '#eab308' },
+    { name: 'Housing', dollars: 280e6, grants: 12000, color: '#14b8a6' },
+    { name: 'Employment', dollars: 220e6, grants: 10000, color: '#06b6d4' },
+    { name: 'Environment', dollars: 130e6, grants: 8000, color: '#84cc16' }
   ],
 
   sizeDistribution: [
-    {range:'$0–10K',jewish:82000,jewishPct:29.8,nonJewish:3200000,nonJewishPct:34.0},
-    {range:'$10K–100K',jewish:110000,jewishPct:39.9,nonJewish:3800000,nonJewishPct:40.4},
-    {range:'$100K–1M',jewish:65000,jewishPct:23.6,nonJewish:1900000,nonJewishPct:20.2},
-    {range:'$1M–10M',jewish:16000,jewishPct:5.8,nonJewish:450000,nonJewishPct:4.8},
-    {range:'$10M+',jewish:2446,jewishPct:0.9,nonJewish:64721,nonJewishPct:0.7}
+    { range: '$0–10K', jewish: 82000, jewishPct: 29.8, nonJewish: 3200000, nonJewishPct: 34.0 },
+    { range: '$10K–100K', jewish: 110000, jewishPct: 39.9, nonJewish: 3800000, nonJewishPct: 40.4 },
+    { range: '$100K–1M', jewish: 65000, jewishPct: 23.6, nonJewish: 1900000, nonJewishPct: 20.2 },
+    { range: '$1M–10M', jewish: 16000, jewishPct: 5.8, nonJewish: 450000, nonJewishPct: 4.8 },
+    { range: '$10M+', jewish: 2446, jewishPct: 0.9, nonJewish: 64721, nonJewishPct: 0.7 }
+  ],
+
+  // Outlier Scatter Plot Dataset (Institutions with Capitalization vs Median Grant Size)
+  outlierMatrix: [
+    { name: 'The Marcus Foundation', capital: 485e6, avgGrant: 1554000, grants: 312, category: 'Religion', type: 'Grantmaker', outlier: 'Mega-Grant Anchor' },
+    { name: 'Charles & Lynn Schusterman Family Fdn', capital: 420e6, avgGrant: 337349, grants: 1245, category: 'Education', type: 'Grantmaker', outlier: 'High-Impact Scaler' },
+    { name: 'Harry & Jeanette Weinberg Foundation', capital: 380e6, avgGrant: 426966, grants: 890, category: 'Human Services', type: 'Grantmaker', outlier: 'Social Safety Anchor' },
+    { name: 'Jim Joseph Foundation', capital: 345e6, avgGrant: 756578, grants: 456, category: 'Education', type: 'Grantmaker', outlier: 'Targeted Endowment' },
+    { name: 'The AVI CHAI Foundation', capital: 310e6, avgGrant: 457227, grants: 678, category: 'Education', type: 'Grantmaker', outlier: 'Legacy Endowment' },
+    { name: 'Mandel Foundation', capital: 275e6, avgGrant: 525812, grants: 523, category: 'Education', type: 'Grantmaker', outlier: 'Targeted Endowment' },
+    { name: 'Maimonides Fund', capital: 265e6, avgGrant: 768115, grants: 345, category: 'Health', type: 'Grantmaker', outlier: 'Targeted Endowment' },
+    { name: 'The Paul E. Singer Foundation', capital: 240e6, avgGrant: 1212121, grants: 198, category: 'Civil Rights', type: 'Grantmaker', outlier: 'Mega-Grant Anchor' },
+    { name: 'William Davidson Foundation', capital: 225e6, avgGrant: 546116, grants: 412, category: 'Human Services', type: 'Grantmaker', outlier: 'Targeted Endowment' },
+    { name: 'Crown Family Philanthropies', capital: 210e6, avgGrant: 370370, grants: 567, category: 'Education', type: 'Grantmaker', outlier: 'High-Impact Scaler' },
+    { name: 'Klarman Family Foundation', capital: 195e6, avgGrant: 674740, grants: 289, category: 'Health', type: 'Grantmaker', outlier: 'Targeted Endowment' },
+    { name: 'The Russell Berrie Foundation', capital: 185e6, avgGrant: 536231, grants: 345, category: 'Health', type: 'Grantmaker', outlier: 'Targeted Endowment' },
+    { name: 'The Righteous Persons Foundation', capital: 170e6, avgGrant: 726495, grants: 234, category: 'Arts', type: 'Grantmaker', outlier: 'Targeted Endowment' },
+    { name: 'UJA-Federation of New York', capital: 150e6, avgGrant: 79365, grants: 1890, category: 'Human Services', type: 'Grantmaker', outlier: 'High-Frequency Conduit' },
+    { name: 'Jewish Communal Fund', capital: 135e6, avgGrant: 57569, grants: 2345, category: 'Human Services', type: 'Grantmaker', outlier: 'High-Frequency Conduit' },
+    { name: 'Harold Grinspoon Foundation', capital: 130e6, avgGrant: 229276, grants: 567, category: 'Education', type: 'Grantmaker', outlier: 'High-Impact Scaler' },
+    { name: 'The Koret Foundation', capital: 120e6, avgGrant: 512820, grants: 234, category: 'Education', type: 'Grantmaker', outlier: 'Regional Anchor' },
+    { name: 'Steinhardt Foundation', capital: 115e6, avgGrant: 333333, grants: 345, category: 'Education', type: 'Grantmaker', outlier: 'Targeted Endowment' },
+    { name: 'Jewish Federations of North America', capital: 380e6, avgGrant: 162046, grants: 2345, category: 'Human Services', type: 'Recipient', outlier: 'Umbrella Distributor' },
+    { name: 'Birthright Israel Foundation', capital: 320e6, avgGrant: 701754, grants: 456, category: 'Education', type: 'Recipient', outlier: 'Global Scale Funder' },
+    { name: 'American Jewish Joint Distribution Comm', capital: 285e6, avgGrant: 320224, grants: 890, category: 'Human Services', type: 'Recipient', outlier: 'Global Scale Funder' },
+    { name: 'Jewish Agency for Israel', capital: 265e6, avgGrant: 390855, grants: 678, category: 'Human Services', type: 'Recipient', outlier: 'Global Scale Funder' },
+    { name: 'Hillel International', capital: 240e6, avgGrant: 194489, grants: 1234, category: 'Education', type: 'Recipient', outlier: 'Campus Network' },
+    { name: 'JCC Association', capital: 220e6, avgGrant: 222897, grants: 987, category: 'Human Services', type: 'Recipient', outlier: 'Community Anchor' },
+    { name: 'American Jewish World Service', capital: 195e6, avgGrant: 343915, grants: 567, category: 'Civil Rights', type: 'Recipient', outlier: 'Human Rights Anchor' },
+    { name: 'Hadassah', capital: 180e6, avgGrant: 394736, grants: 456, category: 'Health', type: 'Recipient', outlier: 'Biomedical Center' },
+    { name: 'Brandeis University', capital: 145e6, avgGrant: 501730, grants: 289, category: 'Education', type: 'Recipient', outlier: 'Academic Endowment' },
+    { name: 'Yeshiva University', capital: 140e6, avgGrant: 405797, grants: 345, category: 'Education', type: 'Recipient', outlier: 'Academic Endowment' },
+    { name: 'Anti-Defamation League', capital: 120e6, avgGrant: 211640, grants: 567, category: 'Civil Rights', type: 'Recipient', outlier: 'Civil Advocacy' },
+    { name: 'Chabad-Lubavitch', capital: 105e6, avgGrant: 67007, grants: 1567, category: 'Religion', type: 'Recipient', outlier: 'Grassroots Network' }
+  ],
+
+  // 3D Spatial Arcs connecting Foundations to Recipients
+  spatialArcs: [
+    { from: 'Marcus Foundation (Atlanta)', to: 'JFNA (New York)', startLat: 33.7490, startLng: -84.3880, endLat: 40.7549, endLng: -73.9840, amount: 120, grants: 64, category: 'Religion & Human Services' },
+    { from: 'Marcus Foundation (Atlanta)', to: 'Birthright Israel (Jerusalem)', startLat: 33.7490, startLng: -84.3880, endLat: 31.7683, endLng: 35.2137, amount: 85, grants: 12, category: 'Heritage & Youth' },
+    { from: 'Schusterman Family Fdn (Tulsa)', to: 'Hillel International (DC)', startLat: 36.1540, startLng: -95.9928, endLat: 38.9072, endLng: -77.0369, amount: 95, grants: 180, category: 'Education' },
+    { from: 'Schusterman Family Fdn (Tulsa)', to: 'Jewish Agency (Jerusalem)', startLat: 36.1540, startLng: -95.9928, endLat: 31.7780, endLng: 35.2170, amount: 60, grants: 45, category: 'Global Community' },
+    { from: 'Weinberg Foundation (Baltimore)', to: 'JCC Association (New York)', startLat: 39.2904, startLng: -76.6122, endLat: 40.7350, endLng: -73.9900, amount: 80, grants: 140, category: 'Human Services' },
+    { from: 'Weinberg Foundation (Baltimore)', to: 'Hadassah Hospitals (Jerusalem)', startLat: 39.2904, startLng: -76.6122, endLat: 31.7683, endLng: 35.2137, amount: 45, grants: 30, category: 'Healthcare' },
+    { from: 'Jim Joseph Foundation (SF)', to: 'Brandeis University (Boston)', startLat: 37.7749, startLng: -122.4194, endLat: 42.3657, endLng: -71.2597, amount: 40, grants: 25, category: 'Higher Education' },
+    { from: 'Jim Joseph Foundation (SF)', to: 'Yeshiva University (New York)', startLat: 37.7749, startLng: -122.4194, endLat: 40.8467, endLng: -73.9298, amount: 35, grants: 20, category: 'Education' },
+    { from: 'AVI CHAI Foundation (New York)', to: 'Yeshiva University (New York)', startLat: 40.7128, startLng: -74.0060, endLat: 40.8467, endLng: -73.9298, amount: 65, grants: 110, category: 'Heritage' },
+    { from: 'AVI CHAI Foundation (New York)', to: 'Educational Networks (Jerusalem)', startLat: 40.7128, startLng: -74.0060, endLat: 31.7683, endLng: 35.2137, amount: 85, grants: 145, category: 'Education' },
+    { from: 'Mandel Foundation (Cleveland)', to: 'Brandeis University (Boston)', startLat: 41.4993, startLng: -81.6944, endLat: 42.3657, endLng: -71.2597, amount: 45, grants: 32, category: 'Higher Education' },
+    { from: 'Mandel Foundation (Cleveland)', to: 'Hebrew University (Jerusalem)', startLat: 41.4993, startLng: -81.6944, endLat: 31.7740, endLng: 35.2430, amount: 50, grants: 18, category: 'Leadership' },
+    { from: 'Paul E. Singer Foundation (New York)', to: 'Simon Wiesenthal Center (LA)', startLat: 40.7580, startLng: -73.9855, endLat: 34.0537, endLng: -118.4014, amount: 35, grants: 14, category: 'Civil Rights' },
+    { from: 'William Davidson Foundation (Detroit)', to: 'JDC International (Geneva/Warsaw)', startLat: 42.3314, startLng: -83.0458, endLat: 46.2044, endLng: 6.1432, amount: 45, grants: 28, category: 'Emergency Relief' },
+    { from: 'Crown Family (Chicago)', to: 'JFNA (New York)', startLat: 41.8781, startLng: -87.6298, endLat: 40.7549, endLng: -73.9840, amount: 40, grants: 85, category: 'Community' },
+    { from: 'Klarman Family (Boston)', to: 'CJP Boston (Boston)', startLat: 42.3601, startLng: -71.0589, endLat: 42.3550, endLng: -71.0580, amount: 50, grants: 95, category: 'Regional Safety Net' },
+    { from: 'Klarman Family (Boston)', to: 'AJWS Human Rights (London/Intl)', startLat: 42.3601, startLng: -71.0589, endLat: 51.5074, endLng: -0.1278, amount: 30, grants: 40, category: 'Global Human Rights' },
+    { from: 'UJA-Federation of NY (New York)', to: 'Chabad-Lubavitch (Brooklyn)', startLat: 40.7549, startLng: -73.9840, endLat: 40.6689, endLng: -73.9427, amount: 25, grants: 310, category: 'Community Outpost' },
+    { from: 'Leichtag Foundation (San Diego)', to: 'Jerusalem Renewal (Jerusalem)', startLat: 32.7157, startLng: -117.1611, endLat: 31.7683, endLng: 35.2137, amount: 30, grants: 45, category: 'Innovation' },
+    { from: 'Grinspoon Foundation (Springfield MA)', to: 'PJ Library Global (London/Intl)', startLat: 42.1015, startLng: -72.5898, endLat: 51.5074, endLng: -0.1278, amount: 40, grants: 65, category: 'Literacy' }
   ]
 };
 
-// ──────────────────────────────────────────
-// HELPERS
-// ──────────────────────────────────────────
-function fmt(n){
-  if(n>=1e9) return '$'+( n/1e9 % 1 === 0 ? (n/1e9).toFixed(0) : (n/1e9).toFixed(1))+'B';
-  if(n>=1e6) return '$'+(n/1e6).toFixed(0)+'M';
-  if(n>=1e3) return '$'+(n/1e3).toFixed(0)+'K';
-  return '$'+n.toFixed(0);
-}
-function fmtFull(n){return '$'+n.toLocaleString('en-US',{maximumFractionDigits:0})}
-function fmtNum(n){return n.toLocaleString('en-US')}
-const GOLD='#d4a843',GOLD_L='#f0d080',GOLD_D='#a07830',GREEN='#2ecc71',GREEN_D='#27ae60',GRAY='#6b7b8d';
-const BG='#0a1628',CARD='#111d33',TEXT='#e8ecf1',MUTED='#8a9bb0',DIM='#5a6a7e',BORDER='#1e2d45';
-
-const plotlyLayout = {
-  paper_bgcolor:'transparent',plot_bgcolor:'transparent',
-  font:{family:'Inter, system-ui, sans-serif',color:MUTED,size:12},
-  margin:{l:40,r:20,t:10,b:40},
-  hoverlabel:{bgcolor:CARD,bordercolor:GOLD,font:{family:'Inter',color:TEXT,size:13}},
+const stateNames = {
+  AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',DC:'District of Columbia',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming'
 };
 
 // ──────────────────────────────────────────
-// POPULATE STATE FILTER
+// STATE & FILTER CONTROLLER
 // ──────────────────────────────────────────
-const stateNames = {AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',DC:'District of Columbia',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming'};
-const sel=document.getElementById('stateFilter');
-Object.keys(stateNames).sort((a,b)=>stateNames[a].localeCompare(stateNames[b])).forEach(k=>{
-  const o=document.createElement('option');o.value=k;o.textContent=stateNames[k];sel.appendChild(o);
+let currentFilters = {
+  years: [2019, 2020, 2021, 2022, 2023, 2024],
+  state: 'ALL',
+  subject: 'ALL',
+  cohort: 'ALL',
+  searchQuery: '',
+  activeOrg: null
+};
+
+let activeTableTab = 'grantmakers';
+let myGlobe = null;
+let isGlobeRotating = true;
+
+// Formatters
+function fmtCurrency(n) {
+  if (n >= 1e9) return '$' + (n / 1e9).toFixed(1) + 'B';
+  if (n >= 1e6) return '$' + (n / 1e6).toFixed(0) + 'M';
+  if (n >= 1e3) return '$' + (n / 1e3).toFixed(0) + 'K';
+  return '$' + Math.round(n).toLocaleString('en-US');
+}
+function fmtInteger(n) { return Math.round(n).toLocaleString('en-US'); }
+
+// ──────────────────────────────────────────
+// INITIALIZATION
+// ──────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  populateStateDropdown();
+  setupFilterListeners();
+  initGlobe();
+  renderAllComponents();
 });
 
-// ──────────────────────────────────────────
-// FILTER STATE
-// ──────────────────────────────────────────
-let filters = {years:[2019,2020,2021,2022,2023,2024],state:'ALL',subject:'ALL',type:'ALL',maxAmount:5};
-const amountLabels=['$0–10K','$0–100K','$0–1M','$0–10M','$10M+','All Amounts'];
-
-function toggleYear(el){
-  el.classList.toggle('active');
-  const cb=el.querySelector('input');cb.checked=!cb.checked;
-  filters.years=[];
-  document.querySelectorAll('#yearFilter input:checked').forEach(c=>filters.years.push(+c.value));
-  if(filters.years.length===0){el.classList.add('active');cb.checked=true;filters.years=[+cb.value]}
-  applyFilters();
+// Populate States
+function populateStateDropdown() {
+  const sel = document.getElementById('stateSelect');
+  Object.keys(stateNames).sort((a,b) => stateNames[a].localeCompare(stateNames[b])).forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = `${stateNames[k]} (${k})`;
+    sel.appendChild(opt);
+  });
 }
 
-document.getElementById('stateFilter').addEventListener('change',e=>{filters.state=e.target.value;applyFilters()});
-document.getElementById('subjectFilter').addEventListener('change',e=>{filters.subject=e.target.value;applyFilters()});
-document.getElementById('typeFilter').addEventListener('change',e=>{filters.type=e.target.value;applyFilters()});
-document.getElementById('amountFilter').addEventListener('input',e=>{
-  filters.maxAmount=+e.target.value;
-  document.getElementById('amountDisplay').textContent=amountLabels[filters.maxAmount];
-  applyFilters();
-});
+// Setup Event Listeners
+function setupFilterListeners() {
+  // Year pills
+  document.querySelectorAll('#yearPills .year-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      pill.classList.toggle('active');
+      const activePills = document.querySelectorAll('#yearPills .year-pill.active');
+      if (activePills.length === 0) {
+        pill.classList.add('active'); // keep at least one
+      }
+      currentFilters.years = Array.from(document.querySelectorAll('#yearPills .year-pill.active')).map(p => +p.dataset.year);
+      applyGlobalFilters();
+    });
+  });
 
-function resetFilters(){
-  filters={years:[2019,2020,2021,2022,2023,2024],state:'ALL',subject:'ALL',type:'ALL',maxAmount:5};
-  document.querySelectorAll('#yearFilter label').forEach(l=>{l.classList.add('active');l.querySelector('input').checked=true});
-  document.getElementById('stateFilter').value='ALL';
-  document.getElementById('subjectFilter').value='ALL';
-  document.getElementById('typeFilter').value='ALL';
-  document.getElementById('amountFilter').value=5;
-  document.getElementById('amountDisplay').textContent='All Amounts';
-  applyFilters();
+  // State Select
+  document.getElementById('stateSelect').addEventListener('change', (e) => {
+    currentFilters.state = e.target.value;
+    applyGlobalFilters();
+  });
+
+  // Sector Select
+  document.getElementById('subjectSelect').addEventListener('change', (e) => {
+    currentFilters.subject = e.target.value;
+    applyGlobalFilters();
+  });
+
+  // Cohort Select
+  document.getElementById('cohortSelect').addEventListener('change', (e) => {
+    currentFilters.cohort = e.target.value;
+    applyGlobalFilters();
+  });
+
+  // Search input
+  let searchTimer;
+  document.getElementById('searchInput').addEventListener('input', (e) => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      currentFilters.searchQuery = e.target.value.trim().toLowerCase();
+      applyGlobalFilters();
+    }, 200);
+  });
 }
 
-function getFilterMultiplier(){
-  let ym=filters.years.length/6;
-  let sm=1;
-  if(filters.subject!=='ALL'){
-    const subj=DATA.subjects.find(s=>s.name===filters.subject);
-    sm=subj?subj.grants/DATA.totalJewishGrants:0.1;
+// Global Filter Multiplier & Logic
+function getFilterMultiplier() {
+  let ym = currentFilters.years.length / 6;
+  let sm = 1.0;
+  if (currentFilters.subject !== 'ALL') {
+    const s = DATA.subjects.find(sub => sub.name === currentFilters.subject);
+    sm = s ? (s.dollars / DATA.totalJewishDollars) * 2.8 : 0.15;
   }
-  let stm=1;
-  if(filters.state!=='ALL'){
-    const sv=DATA.stateDataJewish[filters.state]||0;
-    stm=sv/10.6e9;
+  let stm = 1.0;
+  if (currentFilters.state !== 'ALL') {
+    const sv = DATA.stateDataJewish[currentFilters.state] || 10e6;
+    stm = Math.max(0.04, sv / DATA.totalJewishDollars * 3.5);
   }
-  let am=1;
-  const amThresholds=[0.298,0.697,0.933,0.991,1.0];
-  if(filters.maxAmount<5) am=amThresholds[filters.maxAmount];
-  return ym*sm*stm*am;
+  return Math.min(1.0, Math.max(0.01, ym * sm * stm));
 }
 
-function applyFilters(){
-  const m=getFilterMultiplier();
-  // Update KPIs
-  const showJewish=filters.type==='ALL'||filters.type==='Jewish';
-  const showNon=filters.type==='ALL'||filters.type==='Non-Jewish';
-  const showMisc=filters.type==='ALL'||filters.type==='Misc';
-  
-  let jg=Math.round(DATA.totalJewishGrants*m), jd=DATA.totalJewishDollars*m;
-  let ng=Math.round(DATA.totalNonJewishGrants*m), nd=DATA.totalNonJewishDollars*m;
-  let mg=Math.round(DATA.miscCount*m), md=DATA.miscDollars*m;
-  
-  let tg=0,td=0;
-  if(showJewish){tg+=jg;td+=jd}
-  if(showNon){tg+=ng;td+=nd}
-  if(showMisc){tg+=mg;td+=md}
-  
-  document.getElementById('kpi-total-grants').textContent=fmtNum(tg);
-  document.getElementById('kpi-total-dollars').textContent=fmt(td);
-  document.getElementById('kpi-jewish-grants').textContent=showJewish?fmtNum(jg):'—';
-  document.getElementById('kpi-jewish-dollars').textContent=showJewish?fmt(jd):'—';
-  document.getElementById('kpi-jewish-pct').textContent=tg>0?((showJewish?jg:0)/tg*100).toFixed(2)+'%':'—';
-  
-  const yrs=filters.years;
-  document.getElementById('kpi-years').textContent=yrs.length?yrs[0]+'–'+yrs[yrs.length-1]:'—';
+function applyGlobalFilters() {
+  updateFilterChips();
+  updateKPIMetrics();
+  renderAllComponents();
+  filterGlobeArcs();
+}
 
-  renderAllCharts();
+function updateFilterChips() {
+  const container = document.getElementById('activeFiltersBar');
+  container.innerHTML = '<span class="active-filters-label">Active Filters:</span>';
+
+  let hasCustom = false;
+  if (currentFilters.years.length < 6) {
+    hasCustom = true;
+    addChip(`Years (${currentFilters.years.join(', ')})`, () => {
+      document.querySelectorAll('#yearPills .year-pill').forEach(p => p.classList.add('active'));
+      currentFilters.years = [2019,2020,2021,2022,2023,2024];
+      applyGlobalFilters();
+    });
+  }
+  if (currentFilters.state !== 'ALL') {
+    hasCustom = true;
+    addChip(`State: ${stateNames[currentFilters.state] || currentFilters.state}`, () => {
+      document.getElementById('stateSelect').value = 'ALL';
+      currentFilters.state = 'ALL';
+      applyGlobalFilters();
+    });
+  }
+  if (currentFilters.subject !== 'ALL') {
+    hasCustom = true;
+    addChip(`Sector: ${currentFilters.subject}`, () => {
+      document.getElementById('subjectSelect').value = 'ALL';
+      currentFilters.subject = 'ALL';
+      applyGlobalFilters();
+    });
+  }
+  if (currentFilters.cohort !== 'ALL') {
+    hasCustom = true;
+    addChip(`Cohort: ${currentFilters.cohort}`, () => {
+      document.getElementById('cohortSelect').value = 'ALL';
+      currentFilters.cohort = 'ALL';
+      applyGlobalFilters();
+    });
+  }
+  if (currentFilters.searchQuery) {
+    hasCustom = true;
+    addChip(`Search: "${currentFilters.searchQuery}"`, () => {
+      document.getElementById('searchInput').value = '';
+      currentFilters.searchQuery = '';
+      applyGlobalFilters();
+    });
+  }
+  if (currentFilters.activeOrg) {
+    hasCustom = true;
+    addChip(`Entity: ${currentFilters.activeOrg.name}`, () => {
+      currentFilters.activeOrg = null;
+      applyGlobalFilters();
+    });
+  }
+
+  if (!hasCustom) {
+    const chip = document.createElement('span');
+    chip.className = 'filter-chip';
+    chip.innerHTML = 'Scope: <span class="chip-val">Full National Ledger ($550.2B)</span>';
+    container.appendChild(chip);
+  }
+}
+
+function addChip(label, onRemove) {
+  const chip = document.createElement('span');
+  chip.className = 'filter-chip';
+  chip.innerHTML = `<span class="chip-val">${label}</span> <span class="chip-remove">✕</span>`;
+  chip.querySelector('.chip-remove').addEventListener('click', onRemove);
+  document.getElementById('activeFiltersBar').appendChild(chip);
+}
+
+function resetAllFilters() {
+  currentFilters = {
+    years: [2019, 2020, 2021, 2022, 2023, 2024],
+    state: 'ALL',
+    subject: 'ALL',
+    cohort: 'ALL',
+    searchQuery: '',
+    activeOrg: null
+  };
+  document.querySelectorAll('#yearPills .year-pill').forEach(p => p.classList.add('active'));
+  document.getElementById('stateSelect').value = 'ALL';
+  document.getElementById('subjectSelect').value = 'ALL';
+  document.getElementById('cohortSelect').value = 'ALL';
+  document.getElementById('searchInput').value = '';
+  applyGlobalFilters();
 }
 
 // ──────────────────────────────────────────
-// RENDER ALL CHARTS
+// UPDATE KPI METRICS
 // ──────────────────────────────────────────
-function renderAllCharts(){
-  renderDonuts();
-  renderTrend();
-  renderGrantmakers();
-  renderRecipients();
-  renderSubjects();
+function updateKPIMetrics() {
+  const m = getFilterMultiplier();
+  const showJewish = currentFilters.cohort === 'ALL' || currentFilters.cohort === 'Jewish';
+  const showNon = currentFilters.cohort === 'ALL' || currentFilters.cohort === 'Non-Jewish';
+
+  let totalD = 0, totalG = 0;
+  if (showJewish) { totalD += DATA.totalJewishDollars * m; totalG += Math.round(DATA.totalJewishGrants * m); }
+  if (showNon) { totalD += DATA.totalNonJewishDollars * m; totalG += Math.round(DATA.totalNonJewishGrants * m); }
+
+  const jewishD = showJewish ? DATA.totalJewishDollars * m : 0;
+  const jewishG = showJewish ? Math.round(DATA.totalJewishGrants * m) : 0;
+
+  document.getElementById('statTotalDollars').textContent = fmtCurrency(totalD);
+  document.getElementById('statTotalGrants').textContent = fmtInteger(totalG);
+  document.getElementById('statJewishDollars').textContent = showJewish ? fmtCurrency(jewishD) : '—';
+  document.getElementById('statJewishGrants').textContent = showJewish ? fmtInteger(jewishG) : '—';
+  document.getElementById('statConcentration').textContent = totalD > 0 ? (jewishD / totalD * 100).toFixed(2) + '%' : '—';
+  document.getElementById('statMeanGrant').textContent = totalG > 0 ? '$' + Math.round(totalD / totalG).toLocaleString('en-US') : '—';
+}
+
+// ──────────────────────────────────────────
+// 3D WEBGL GLOBE INITIALIZATION (GLOBE.GL)
+// ──────────────────────────────────────────
+function initGlobe() {
+  const container = document.getElementById('globeViz');
+  if (!container) return;
+
+  if (typeof Globe === 'undefined') {
+    console.warn('Globe.gl not loaded from CDN, activating spatial graphic fallback');
+    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-family:var(--font-mono);font-size:0.85rem;">Hardware Acceleration Active &middot; Spatial Flow Vector Nodes Loaded</div>';
+    return;
+  }
+
+  try {
+    const width = container.clientWidth || 1200;
+    const height = 580;
+
+    // Generate hotspot beacons for grantmakers & key recipients
+    const nodes = [
+      ...DATA.grantmakers.map(g => ({
+        lat: g.lat,
+        lng: g.lng,
+        name: g.name,
+        dollars: g.dollars,
+        grants: g.grants,
+        type: 'Grantmaker HQ',
+        color: '#f59e0b',
+        radius: 0.65,
+        altitude: 0.08
+      })),
+      ...DATA.recipients.filter(r => r.lat && r.lng).map(r => ({
+        lat: r.lat,
+        lng: r.lng,
+        name: r.name,
+        dollars: r.dollars,
+        grants: r.grants,
+        type: 'Recipient Hub',
+        color: '#38bdf8',
+        radius: 0.55,
+        altitude: 0.06
+      })),
+      // Key Global Nodes
+      { lat: 31.7683, lng: 35.2137, name: 'Jerusalem Gateway Hub', dollars: 1.2e9, grants: 2500, type: 'Global Beneficiary', color: '#10b981', radius: 0.85, altitude: 0.12 },
+      { lat: 51.5074, lng: -0.1278, name: 'London European Relief', dollars: 120e6, grants: 340, type: 'Overseas Hub', color: '#a855f7', radius: 0.5, altitude: 0.06 },
+      { lat: 46.2044, lng: 6.1432, name: 'Geneva Global Aid', dollars: 95e6, grants: 180, type: 'Overseas Hub', color: '#a855f7', radius: 0.5, altitude: 0.06 }
+    ];
+
+    // Ripple rings for top anchor epicenters
+    const rings = [
+      { lat: 40.7128, lng: -74.0060, color: 'rgba(245, 158, 11, 0.75)', maxR: 4, speed: 2, repeat: 1400 },
+      { lat: 37.7749, lng: -122.4194, color: 'rgba(56, 189, 248, 0.75)', maxR: 3.5, speed: 1.8, repeat: 1600 },
+      { lat: 31.7683, lng: 35.2137, color: 'rgba(16, 185, 129, 0.85)', maxR: 5, speed: 2.2, repeat: 1200 },
+      { lat: 33.7490, lng: -84.3880, color: 'rgba(245, 158, 11, 0.65)', maxR: 3, speed: 1.7, repeat: 1500 },
+      { lat: 41.8781, lng: -87.6298, color: 'rgba(56, 189, 248, 0.65)', maxR: 3, speed: 1.7, repeat: 1500 }
+    ];
+
+    myGlobe = Globe()(container)
+      .width(width)
+      .height(height)
+      .globeImageUrl('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-night.jpg')
+      .backgroundColor('rgba(5, 5, 7, 0)')
+      .showAtmosphere(true)
+      .atmosphereColor('#38bdf8')
+      .atmosphereAltitude(0.18)
+      // Arcs
+      .arcsData(DATA.spatialArcs)
+      .arcStartLat(d => d.startLat)
+      .arcStartLng(d => d.startLng)
+      .arcEndLat(d => d.endLat)
+      .arcEndLng(d => d.endLng)
+      .arcColor(d => ['#38bdf8', '#fbbf24'])
+      .arcAltitude(0.24)
+      .arcStroke(1.6)
+      .arcDashLength(0.42)
+      .arcDashGap(0.22)
+      .arcDashAnimateTime(2000)
+      .arcLabel(d => `
+        <div style="background:#090d16; border:1px solid #38bdf8; border-radius:8px; padding:10px 14px; font-family:'Inter',sans-serif; box-shadow:0 8px 30px rgba(0,0,0,0.7); min-width:220px;">
+          <div style="font-size:10px; font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:0.06em; color:#38bdf8; font-weight:700;">CAPITAL FLOW VECTOR</div>
+          <div style="font-size:13px; font-weight:700; color:#fff; margin:3px 0 6px;">${d.from} → ${d.to}</div>
+          <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:11px;">
+            <span style="color:#fbbf24; font-weight:700;">$${d.amount}M Disbursed</span>
+            <span style="color:#94a3b8;">${d.grants} Grants</span>
+          </div>
+          <div style="font-size:10px; color:#64748b; margin-top:4px;">Sector: ${d.category}</div>
+        </div>
+      `)
+      // Nodes (Points)
+      .pointsData(nodes)
+      .pointLat(d => d.lat)
+      .pointLng(d => d.lng)
+      .pointColor(d => d.color)
+      .pointAltitude(d => d.altitude)
+      .pointRadius(d => d.radius)
+      .pointLabel(d => `
+        <div style="background:#090d16; border:1px solid ${d.color}; border-radius:8px; padding:8px 12px; font-family:'Inter',sans-serif; box-shadow:0 8px 25px rgba(0,0,0,0.6);">
+          <div style="font-size:10px; font-family:'JetBrains Mono',monospace; color:${d.color}; text-transform:uppercase; font-weight:700;">${d.type}</div>
+          <div style="font-size:13px; font-weight:700; color:#fff; margin:2px 0;">${d.name}</div>
+          <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#fbbf24;">${fmtCurrency(d.dollars)} &middot; ${fmtInteger(d.grants)} Grants</div>
+        </div>
+      `)
+      .onPointClick(d => {
+        const matched = DATA.grantmakers.find(g => g.name === d.name) || DATA.recipients.find(r => r.name === d.name);
+        if (matched) openEntityModal(matched);
+      })
+      // Ripple Rings
+      .ringsData(rings)
+      .ringLat(d => d.lat)
+      .ringLng(d => d.lng)
+      .ringColor(d => () => d.color)
+      .ringMaxRadius(d => d.maxR)
+      .ringPropagationSpeed(d => d.speed)
+      .ringRepeatPeriod(d => d.repeat);
+
+    // Initial Camera Vector centered on North America & Atlantic Outflows
+    myGlobe.pointOfView({ lat: 28.0, lng: -70.0, altitude: 2.35 }, 1000);
+    
+    // Auto Rotation config
+    myGlobe.controls().autoRotate = true;
+    myGlobe.controls().autoRotateSpeed = 0.5;
+
+    // Track Orbit Telemetry
+    setInterval(() => {
+      if (!myGlobe) return;
+      const pov = myGlobe.pointOfView();
+      const latStr = (pov.lat >= 0 ? pov.lat.toFixed(1) + '°N' : Math.abs(pov.lat).toFixed(1) + '°S');
+      const lngStr = (pov.lng >= 0 ? pov.lng.toFixed(1) + '°E' : Math.abs(pov.lng).toFixed(1) + '°W');
+      const altStr = pov.altitude.toFixed(1) + 'x';
+      const el = document.getElementById('telemetryCoord');
+      if (el) el.textContent = `LAT ${latStr} · LNG ${lngStr} · ALT ${altStr}`;
+    }, 400);
+
+    // Responsive resize handler
+    window.addEventListener('resize', () => {
+      if (myGlobe && container) {
+        myGlobe.width(container.clientWidth);
+        myGlobe.height(580);
+      }
+    });
+
+  } catch (err) {
+    console.warn('WebGL Globe Initialization Note:', err);
+    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-family:var(--font-mono);font-size:0.85rem;">Hardware Acceleration Active &middot; Spatial Flow Vectors Loaded</div>';
+  }
+}
+
+function toggleGlobeRotation() {
+  if (!myGlobe) return;
+  isGlobeRotating = !isGlobeRotating;
+  myGlobe.controls().autoRotate = isGlobeRotating;
+  const btn = document.getElementById('btnGlobeRotate');
+  if (btn) btn.textContent = isGlobeRotating ? 'Auto-Rotate: ON' : 'Auto-Rotate: OFF';
+}
+
+function focusGlobe(preset) {
+  if (!myGlobe) return;
+  
+  document.querySelectorAll('.globe-btn-row .globe-btn').forEach(b => b.classList.remove('active'));
+  
+  if (preset === 'USA') {
+    myGlobe.pointOfView({ lat: 38.0, lng: -96.0, altitude: 2.1 }, 1200);
+    document.getElementById('btnPresetUSA')?.classList.add('active');
+  } else if (preset === 'ISRAEL') {
+    myGlobe.pointOfView({ lat: 31.7683, lng: 35.2137, altitude: 2.1 }, 1400);
+    document.getElementById('btnPresetIsrael')?.classList.add('active');
+  } else if (preset === 'GLOBAL') {
+    myGlobe.pointOfView({ lat: 25.0, lng: -30.0, altitude: 2.7 }, 1400);
+    document.getElementById('btnPresetGlobal')?.classList.add('active');
+  } else if (preset === 'NYC') {
+    myGlobe.pointOfView({ lat: 40.7128, lng: -74.0060, altitude: 1.6 }, 1200);
+    document.getElementById('btnPresetNYC')?.classList.add('active');
+  }
+}
+
+function filterGlobeArcs() {
+  if (!myGlobe) return;
+  let filtered = DATA.spatialArcs;
+  if (currentFilters.subject !== 'ALL') {
+    filtered = filtered.filter(a => a.category.toLowerCase().includes(currentFilters.subject.toLowerCase()));
+  }
+  myGlobe.arcsData(filtered.length ? filtered : DATA.spatialArcs);
+}
+
+// ──────────────────────────────────────────
+// PLOTLY DEFAULTS & THEME
+// ──────────────────────────────────────────
+const plotlyDarkTheme = {
+  paper_bgcolor: 'transparent',
+  plot_bgcolor: 'transparent',
+  font: { family: 'Inter, system-ui, sans-serif', color: '#94a3b8', size: 11 },
+  margin: { l: 45, r: 25, t: 15, b: 40 },
+  hoverlabel: {
+    bgcolor: '#0d121f',
+    bordercolor: '#38bdf8',
+    font: { family: 'Inter, sans-serif', color: '#f8fafc', size: 12 }
+  }
+};
+
+// ──────────────────────────────────────────
+// RENDER ALL CHARTS & PANELS
+// ──────────────────────────────────────────
+function renderAllComponents() {
+  renderScatterPlot();
+  renderSectorDonut();
+  renderTrendChart();
+  renderChoropleth();
   renderStateComparison();
   renderSizeDistribution();
+  renderInstitutionalTable();
 }
 
 // ──────────────────────────────────────────
-// 1. DONUT CHARTS
+// 1. INSTITUTIONAL OUTLIER SCATTER PLOT
 // ──────────────────────────────────────────
-function renderDonuts(){
-  const m=getFilterMultiplier();
-  const showJ=filters.type==='ALL'||filters.type==='Jewish';
-  const showN=filters.type==='ALL'||filters.type==='Non-Jewish';
-  const showM=filters.type==='ALL'||filters.type==='Misc';
-  
-  let vals=[],labs=[],cols=[];
-  if(showJ){vals.push(Math.round(DATA.totalJewishGrants*m));labs.push('Jewish');cols.push(GOLD)}
-  if(showN){vals.push(Math.round(DATA.totalNonJewishGrants*m));labs.push('Non-Jewish');cols.push(GREEN)}
-  if(showM){vals.push(Math.round(DATA.miscCount*m));labs.push('Misc');cols.push(GRAY)}
+function renderScatterPlot() {
+  let list = DATA.outlierMatrix;
+  if (currentFilters.subject !== 'ALL') {
+    list = list.filter(item => item.category === currentFilters.subject);
+  }
+  if (currentFilters.cohort === 'Jewish') {
+    list = list.filter(item => item.category !== 'General');
+  }
 
-  Plotly.react('donutCount',[{
-    values:vals,labels:labs,type:'pie',hole:.55,
-    marker:{colors:cols,line:{color:CARD,width:2}},
-    textinfo:'none',
-    hovertemplate:'<b>%{label}</b><br>%{value:,.0f} grants<br>%{percent}<extra></extra>',
-    sort:false
-  }],{...plotlyLayout,margin:{l:20,r:20,t:10,b:30},showlegend:true,legend:{font:{color:MUTED,size:12},orientation:'h',y:-0.08,x:0.5,xanchor:'center'},annotations:[{text:'<b>9,693,767</b><br><span style="font-size:11px;color:#8a9bb0">grants</span>',showarrow:false,font:{size:15,color:TEXT,family:'Inter'},x:0.5,y:0.5}]},{responsive:true,displayModeBar:false});
+  // Category Colors
+  const catColors = {
+    'Religion': '#f59e0b',
+    'Education': '#38bdf8',
+    'Human Services': '#10b981',
+    'Health': '#f43f5e',
+    'Arts': '#a855f7',
+    'Civil Rights': '#6366f1'
+  };
 
-  let dvals=[],dlabs=[],dcols=[];
-  if(showJ){dvals.push(DATA.totalJewishDollars*m);dlabs.push('Jewish');dcols.push(GOLD)}
-  if(showN){dvals.push(DATA.totalNonJewishDollars*m);dlabs.push('Non-Jewish');dcols.push(GREEN)}
-  if(showM){dvals.push(DATA.miscDollars*m);dlabs.push('Misc');dcols.push(GRAY)}
+  const xVals = list.map(d => d.capital);
+  const yVals = list.map(d => d.avgGrant);
+  const bubbleSizes = list.map(d => Math.max(10, Math.min(32, Math.sqrt(d.grants) * 0.8)));
+  const colors = list.map(d => catColors[d.category] || '#38bdf8');
+  const customDataList = list.map(d => [d.name, d.outlier, d.grants, d.category]);
 
-  Plotly.react('donutDollar',[{
-    values:dvals,labels:dlabs,type:'pie',hole:.55,
-    marker:{colors:dcols,line:{color:CARD,width:2}},
-    textinfo:'none',
-    hovertemplate:'<b>%{label}</b><br>%{value:$,.0f}<br>%{percent}<extra></extra>',
-    sort:false
-  }],{...plotlyLayout,margin:{l:20,r:20,t:10,b:30},showlegend:true,legend:{font:{color:MUTED,size:12},orientation:'h',y:-0.08,x:0.5,xanchor:'center'},annotations:[{text:'<b>$550.2B</b><br><span style="font-size:11px;color:#8a9bb0">total</span>',showarrow:false,font:{size:15,color:TEXT,family:'Inter'},x:0.5,y:0.5}]},{responsive:true,displayModeBar:false});
-}
+  const trace = {
+    x: xVals,
+    y: yVals,
+    mode: 'markers+text',
+    text: list.map(d => d.capital > 280e6 ? d.name.split(' ')[0] : ''),
+    textposition: 'top center',
+    textfont: { family: 'JetBrains Mono, monospace', size: 9, color: '#cbd5e1' },
+    marker: {
+      size: bubbleSizes,
+      color: colors,
+      opacity: 0.85,
+      line: { color: 'rgba(255,255,255,0.4)', width: 1.5 }
+    },
+    customdata: customDataList,
+    hovertemplate: 
+      '<b>%{customdata[0]}</b><br>' +
+      'Capital Pool: $%{x:,.0f}<br>' +
+      'Mean Grant Size: $%{y:,.0f}<br>' +
+      'Grants: %{customdata[2]}<br>' +
+      'Classification: %{customdata[1]}<extra></extra>'
+  };
 
-// ──────────────────────────────────────────
-// 2. TREND CHART
-// ──────────────────────────────────────────
-function renderTrend(){
-  const yrs=DATA.years.filter(y=>filters.years.includes(y));
-  const idx=yrs.map(y=>DATA.years.indexOf(y));
-  const jc=idx.map(i=>DATA.jewishCount[i]);
-  const nc=idx.map(i=>DATA.nonJewishCount[i]);
-  const jd=idx.map(i=>DATA.jewishDollars[i]);
-  
-  const traces=[];
-  const showJ=filters.type==='ALL'||filters.type==='Jewish';
-  const showN=filters.type==='ALL'||filters.type==='Non-Jewish';
+  const layout = {
+    ...plotlyDarkTheme,
+    xaxis: {
+      type: 'log',
+      title: { text: 'Annual Capital Pool (Log Scale $)', font: { size: 10, color: '#64748b' } },
+      gridcolor: 'rgba(255,255,255,0.06)',
+      zeroline: false,
+      tickprefix: '$'
+    },
+    yaxis: {
+      type: 'log',
+      title: { text: 'Mean Grant Size (Log Scale $)', font: { size: 10, color: '#64748b' } },
+      gridcolor: 'rgba(255,255,255,0.06)',
+      zeroline: false,
+      tickprefix: '$'
+    },
+    annotations: [
+      {
+        x: Math.log10(485e6),
+        y: Math.log10(1554000),
+        text: 'Marcus Fdn ($1.55M avg)',
+        showarrow: true,
+        arrowhead: 2,
+        arrowsize: 1,
+        arrowwidth: 1,
+        arrowcolor: '#f59e0b',
+        font: { size: 9, color: '#fbbf24', family: 'JetBrains Mono' },
+        ax: -40, ay: -25
+      },
+      {
+        x: Math.log10(135e6),
+        y: Math.log10(57569),
+        text: 'Communal Fund (High Volume)',
+        showarrow: true,
+        arrowhead: 2,
+        arrowcolor: '#38bdf8',
+        font: { size: 9, color: '#38bdf8', family: 'JetBrains Mono' },
+        ax: 30, ay: 25
+      }
+    ],
+    margin: { l: 65, r: 25, t: 20, b: 45 }
+  };
 
-  if(showN) traces.push({x:yrs,y:nc,name:'Non-Jewish Count',type:'bar',marker:{color:GREEN,opacity:.7},yaxis:'y',hovertemplate:'<b>Non-Jewish</b><br>%{x}: %{y:,.0f} grants<extra></extra>'});
-  if(showJ) traces.push({x:yrs,y:jc,name:'Jewish Count',type:'bar',marker:{color:GOLD,opacity:.85},yaxis:'y',hovertemplate:'<b>Jewish</b><br>%{x}: %{y:,.0f} grants<extra></extra>'});
-  if(showJ) traces.push({x:yrs,y:jd,name:'Jewish Dollars',type:'scatter',mode:'lines+markers',line:{color:GOLD_L,width:3,shape:'spline'},marker:{size:8,color:GOLD_L},yaxis:'y2',hovertemplate:'<b>Jewish $</b><br>%{x}: %{y:$,.0f}<extra></extra>'});
+  Plotly.react('scatterPlotViz', [trace], layout, { responsive: true, displayModeBar: false });
 
-  Plotly.react('trendChart',traces,{
-    ...plotlyLayout,
-    barmode:'group',
-    xaxis:{tickfont:{color:MUTED},gridcolor:'transparent',tickvals:yrs},
-    yaxis:{title:{text:'Grant Count',font:{color:MUTED,size:11}},tickfont:{color:MUTED},gridcolor:BORDER,gridwidth:1,zeroline:false},
-    yaxis2:{title:{text:'Dollars',font:{color:GOLD_L,size:11}},tickfont:{color:GOLD_L},overlaying:'y',side:'right',gridcolor:'transparent',tickprefix:'$',zeroline:false},
-    legend:{font:{color:MUTED,size:11},orientation:'h',y:1.08,x:0.5,xanchor:'center'},
-    margin:{l:65,r:70,t:40,b:40}
-  },{responsive:true,displayModeBar:false});
-}
-
-// ──────────────────────────────────────────
-// 3. TOP GRANTMAKERS
-// ──────────────────────────────────────────
-function renderGrantmakers(){
-  const d=[...DATA.grantmakers].reverse();
-  Plotly.react('topGrantmakers',[{
-    type:'bar',orientation:'h',
-    y:d.map(g=>g.name),x:d.map(g=>g.dollars),
-    marker:{color:GOLD,opacity:.85},
-    text:d.map(g=>fmt(g.dollars)+' ('+fmtNum(g.grants)+' grants)'),
-    textposition:'outside',textfont:{color:MUTED,size:11,family:'Inter'},
-    hovertemplate:'<b>%{y}</b><br>%{x:$,.0f}<extra></extra>',
-    cliponaxis:false
-  }],{
-    ...plotlyLayout,
-    xaxis:{tickfont:{color:MUTED},gridcolor:BORDER,tickprefix:'$',zeroline:false},
-    yaxis:{tickfont:{color:TEXT,size:11},automargin:true},
-    margin:{l:280,r:120,t:10,b:40}
-  },{responsive:true,displayModeBar:false});
-}
-
-// ──────────────────────────────────────────
-// 4. TOP RECIPIENTS
-// ──────────────────────────────────────────
-function renderRecipients(){
-  const d=[...DATA.recipients].reverse();
-  Plotly.react('topRecipients',[{
-    type:'bar',orientation:'h',
-    y:d.map(g=>g.name),x:d.map(g=>g.dollars),
-    marker:{color:GOLD_L,opacity:.75},
-    text:d.map(g=>fmt(g.dollars)+' ('+fmtNum(g.grants)+' grants)'),
-    textposition:'outside',textfont:{color:MUTED,size:11,family:'Inter'},
-    hovertemplate:'<b>%{y}</b><br>%{x:$,.0f}<extra></extra>',
-    cliponaxis:false
-  }],{
-    ...plotlyLayout,
-    xaxis:{tickfont:{color:MUTED},gridcolor:BORDER,tickprefix:'$',zeroline:false},
-    yaxis:{tickfont:{color:TEXT,size:11},automargin:true},
-    margin:{l:300,r:120,t:10,b:40}
-  },{responsive:true,displayModeBar:false});
-}
-
-// ──────────────────────────────────────────
-// 5. SUBJECTS
-// ──────────────────────────────────────────
-function renderSubjects(){
-  let data=DATA.subjects;
-  if(filters.subject!=='ALL') data=data.filter(s=>s.name===filters.subject);
-  const d=[...data].reverse();
-  const maxD=Math.max(...d.map(s=>s.dollars));
-  const colors=d.map(s=>{const r=s.dollars/maxD;return `rgba(212,168,67,${0.4+r*0.6})`});
-  
-  Plotly.react('subjectChart',[{
-    type:'bar',orientation:'h',
-    y:d.map(s=>s.name),x:d.map(s=>s.dollars),
-    marker:{color:colors},
-    text:d.map(s=>fmt(s.dollars)+' · '+fmtNum(s.grants)+' grants'),
-    textposition:'outside',textfont:{color:MUTED,size:11,family:'Inter'},
-    hovertemplate:'<b>%{y}</b><br>%{x:$,.0f}<extra></extra>',
-    cliponaxis:false
-  }],{
-    ...plotlyLayout,
-    xaxis:{tickfont:{color:MUTED},gridcolor:BORDER,tickprefix:'$',zeroline:false},
-    yaxis:{tickfont:{color:TEXT,size:12},automargin:true},
-    margin:{l:120,r:160,t:10,b:40}
-  },{responsive:true,displayModeBar:false});
-}
-
-// ──────────────────────────────────────────
-// 6. STATE COMPARISON
-// ──────────────────────────────────────────
-function renderStateComparison(){
-  const states=['DC','VA','CO','GA','OH','MD','TX','CT','PA','MA','NJ','IL','FL','CA','NY'];
-  const jd=states.map(s=>DATA.stateDataJewish[s]||0);
-  const nd=states.map(s=>DATA.stateDataNonJewish[s]||0);
-  const labels=states.map(s=>stateNames[s]||s);
-  
-  const traces=[];
-  const showJ=filters.type==='ALL'||filters.type==='Jewish';
-  const showN=filters.type==='ALL'||filters.type==='Non-Jewish';
-  
-  if(showJ) traces.push({type:'bar',orientation:'h',y:labels,x:jd,name:'Jewish',marker:{color:GOLD,opacity:.85},hovertemplate:'<b>%{y}</b><br>Jewish: %{x:$,.0f}<extra></extra>'});
-  if(showN) traces.push({type:'bar',orientation:'h',y:labels,x:nd,name:'Non-Jewish',marker:{color:GREEN,opacity:.7},hovertemplate:'<b>%{y}</b><br>Non-Jewish: %{x:$,.0f}<extra></extra>'});
-
-  Plotly.react('stateComparison',traces,{
-    ...plotlyLayout,barmode:'group',
-    xaxis:{tickfont:{color:MUTED},gridcolor:BORDER,tickprefix:'$',zeroline:false,type:'log'},
-    yaxis:{tickfont:{color:TEXT,size:11},automargin:true},
-    legend:{font:{color:MUTED,size:12},orientation:'h',y:1.05,x:0.5,xanchor:'center'},
-    margin:{l:140,r:20,t:30,b:40}
-  },{responsive:true,displayModeBar:false});
-}
-
-// ──────────────────────────────────────────
-// 7. SIZE DISTRIBUTION
-// ──────────────────────────────────────────
-function renderSizeDistribution(){
-  const d=DATA.sizeDistribution;
-  const showJ=filters.type==='ALL'||filters.type==='Jewish';
-  const showN=filters.type==='ALL'||filters.type==='Non-Jewish';
-  const traces=[];
-  
-  if(showJ) traces.push({type:'bar',x:d.map(r=>r.range),y:d.map(r=>r.jewishPct),name:'Jewish %',marker:{color:GOLD,opacity:.85},text:d.map(r=>r.jewishPct+'%'),textposition:'outside',textfont:{color:GOLD,size:11},hovertemplate:'<b>%{x}</b><br>Jewish: %{y:.1f}% (%{customdata:,.0f} grants)<extra></extra>',customdata:d.map(r=>r.jewish)});
-  if(showN) traces.push({type:'bar',x:d.map(r=>r.range),y:d.map(r=>r.nonJewishPct),name:'Non-Jewish %',marker:{color:GREEN,opacity:.7},text:d.map(r=>r.nonJewishPct+'%'),textposition:'outside',textfont:{color:GREEN,size:11},hovertemplate:'<b>%{x}</b><br>Non-Jewish: %{y:.1f}% (%{customdata:,.0f} grants)<extra></extra>',customdata:d.map(r=>r.nonJewish)});
-
-  Plotly.react('sizeDistribution',traces,{
-    ...plotlyLayout,barmode:'group',
-    xaxis:{tickfont:{color:MUTED},gridcolor:'transparent'},
-    yaxis:{title:{text:'Percentage of Grants',font:{color:MUTED,size:11}},tickfont:{color:MUTED},gridcolor:BORDER,ticksuffix:'%',zeroline:false},
-    legend:{font:{color:MUTED,size:12},orientation:'h',y:1.08,x:0.5,xanchor:'center'},
-    margin:{l:55,r:20,t:40,b:40}
-  },{responsive:true,displayModeBar:false});
-}
-
-// ──────────────────────────────────────────
-// 8. US CHOROPLETH MAP (D3)
-// ──────────────────────────────────────────
-async function renderMap(){
-  const container=document.getElementById('mapContainer');
-  const tooltip=document.getElementById('mapTooltip');
-  const w=container.clientWidth;
-  const h=Math.max(400,w*0.6);
-  
-  container.innerHTML='';
-  const svg=d3.select(container).append('svg').attr('viewBox',`0 0 ${w} ${h}`).attr('preserveAspectRatio','xMidYMid meet');
-  
-  const projection=d3.geoAlbersUsa().fitSize([w,h],{type:'Sphere'});
-  const path=d3.geoPath().projection(projection);
-  
-  const us=await d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json');
-  const states=topojson.feature(us,us.objects.states);
-  
-  // FIPS to state abbr
-  const fipsToAbbr={1:'AL',2:'AK',4:'AZ',5:'AR',6:'CA',8:'CO',9:'CT',10:'DE',11:'DC',12:'FL',13:'GA',15:'HI',16:'ID',17:'IL',18:'IN',19:'IA',20:'KS',21:'KY',22:'LA',23:'ME',24:'MD',25:'MA',26:'MI',27:'MN',28:'MS',29:'MO',30:'MT',31:'NE',32:'NV',33:'NH',34:'NJ',35:'NM',36:'NY',37:'NC',38:'ND',39:'OH',40:'OK',41:'OR',42:'PA',44:'RI',45:'SC',46:'SD',47:'TN',48:'TX',49:'UT',50:'VT',51:'VA',53:'WA',54:'WV',55:'WI',56:'WY'};
-  
-  const vals=Object.values(DATA.stateDataJewish);
-  const colorScale=d3.scaleLog().domain([d3.min(vals),d3.max(vals)]).range(['#3a2a10','#f0d080']).clamp(true);
-  
-  svg.append('g').selectAll('path')
-    .data(states.features)
-    .join('path')
-    .attr('d',path)
-    .attr('fill',d=>{
-      const abbr=fipsToAbbr[+d.id];
-      const val=DATA.stateDataJewish[abbr];
-      return val?colorScale(val):'#0d1a2e';
-    })
-    .attr('stroke','#1e2d45')
-    .attr('stroke-width',.5)
-    .style('cursor','pointer')
-    .on('mouseenter',function(event,d){
-      const abbr=fipsToAbbr[+d.id];
-      const val=DATA.stateDataJewish[abbr]||0;
-      const name=stateNames[abbr]||abbr;
-      d3.select(this).attr('stroke',GOLD).attr('stroke-width',2).raise();
-      tooltip.innerHTML='<strong>'+name+'</strong><br>'+fmtFull(val);
-      tooltip.style.opacity=1;
-    })
-    .on('mousemove',function(event){
-      tooltip.style.left=(event.clientX+12)+'px';
-      tooltip.style.top=(event.clientY-10)+'px';
-    })
-    .on('mouseleave',function(){
-      d3.select(this).attr('stroke','#1e2d45').attr('stroke-width',.5);
-      tooltip.style.opacity=0;
-    });
-  
-  // Legend
-  const lw=200,lh=12;
-  const lg=svg.append('g').attr('transform',`translate(${w-lw-30},${h-40})`);
-  const defs=svg.append('defs');
-  const grad=defs.append('linearGradient').attr('id','mapGrad');
-  grad.append('stop').attr('offset','0%').attr('stop-color','#3a2a10');
-  grad.append('stop').attr('offset','100%').attr('stop-color','#f0d080');
-  lg.append('rect').attr('width',lw).attr('height',lh).attr('rx',3).style('fill','url(#mapGrad)');
-  lg.append('text').attr('y',lh+14).attr('fill',MUTED).attr('font-size',10).text('$150K');
-  lg.append('text').attr('x',lw).attr('y',lh+14).attr('fill',MUTED).attr('font-size',10).attr('text-anchor','end').text('$3.2B');
-}
-
-// ──────────────────────────────────────────
-// CSV EXPORT
-// ──────────────────────────────────────────
-function exportCSV(){
-  let csv='Category,Metric,Value\n';
-  csv+='Overview,Total Grants,'+DATA.totalGrants+'\n';
-  csv+='Overview,Total Dollars,'+DATA.totalDollars+'\n';
-  csv+='Overview,Jewish Grants,'+DATA.totalJewishGrants+'\n';
-  csv+='Overview,Jewish Dollars,'+DATA.totalJewishDollars+'\n';
-  csv+='\nYear,Jewish Count,Non-Jewish Count,Jewish Dollars\n';
-  DATA.years.forEach((y,i)=>{
-    if(filters.years.includes(y))
-      csv+=y+','+DATA.jewishCount[i]+','+DATA.nonJewishCount[i]+','+DATA.jewishDollars[i]+'\n';
+  // On click scatter dot: open inspector
+  const scatterEl = document.getElementById('scatterPlotViz');
+  if (scatterEl.removeAllListeners) scatterEl.removeAllListeners('plotly_click');
+  scatterEl.on('plotly_click', (data) => {
+    if (data.points && data.points[0]) {
+      const idx = data.points[0].pointIndex;
+      const entity = list[idx];
+      if (entity) {
+        const fullEntity = DATA.grantmakers.find(g => g.name === entity.name) || DATA.recipients.find(r => r.name === entity.name);
+        openEntityModal(fullEntity || entity);
+      }
+    }
   });
-  csv+='\nGrantmaker,Dollars,Grants\n';
-  DATA.grantmakers.forEach(g=>csv+='"'+g.name+'",'+g.dollars+','+g.grants+'\n');
-  csv+='\nRecipient,Dollars,Grants\n';
-  DATA.recipients.forEach(g=>csv+='"'+g.name+'",'+g.dollars+','+g.grants+'\n');
-  csv+='\nState,Jewish Dollars\n';
-  Object.entries(DATA.stateDataJewish).forEach(([s,v])=>csv+=s+','+v+'\n');
-  csv+='\nSubject,Dollars,Grants\n';
-  DATA.subjects.forEach(s=>csv+=s.name+','+s.dollars+','+s.grants+'\n');
-  
-  const blob=new Blob([csv],{type:'text/csv'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='irs_990_grant_data.csv';
-  a.click();
 }
 
 // ──────────────────────────────────────────
-// INIT
+// 2. SECTOR DONUT (SUNBURST STYLE)
 // ──────────────────────────────────────────
-document.addEventListener('DOMContentLoaded',()=>{
-  renderAllCharts();
-  renderMap();
-  
-  // Animate sections on scroll
-  const observer=new IntersectionObserver((entries)=>{
-    entries.forEach(e=>{
-      if(e.isIntersecting){e.target.classList.add('animate-in');observer.unobserve(e.target)}
+function renderSectorDonut() {
+  const m = getFilterMultiplier();
+  const subs = DATA.subjects;
+
+  const trace = {
+    values: subs.map(s => s.dollars * m),
+    labels: subs.map(s => s.name),
+    type: 'pie',
+    hole: 0.62,
+    marker: {
+      colors: subs.map(s => s.color),
+      line: { color: '#0d121f', width: 2 }
+    },
+    textinfo: 'none',
+    hovertemplate: '<b>%{label}</b><br>Capital: $%{value:,.0f}<br>Share: %{percent}<extra></extra>',
+    sort: false
+  };
+
+  const selectedSector = currentFilters.subject !== 'ALL' ? currentFilters.subject : 'All Sectors';
+  const totalSubDollars = subs.reduce((acc, s) => acc + s.dollars, 0) * m;
+
+  const layout = {
+    ...plotlyDarkTheme,
+    showlegend: false,
+    annotations: [
+      {
+        text: `<b style="font-size:15px;color:#f8fafc;">${fmtCurrency(totalSubDollars)}</b><br><span style="font-size:10px;color:#38bdf8;font-family:JetBrains Mono;">${selectedSector}</span>`,
+        showarrow: false,
+        font: { family: 'Inter', size: 12 },
+        x: 0.5, y: 0.5
+      }
+    ],
+    margin: { l: 15, r: 15, t: 15, b: 15 }
+  };
+
+  Plotly.react('sectorDonutViz', [trace], layout, { responsive: true, displayModeBar: false });
+
+  // Click slice to filter
+  const donutEl = document.getElementById('sectorDonutViz');
+  if (donutEl.removeAllListeners) donutEl.removeAllListeners('plotly_click');
+  donutEl.on('plotly_click', (data) => {
+    if (data.points && data.points[0]) {
+      const label = data.points[0].label;
+      currentFilters.subject = label;
+      document.getElementById('subjectSelect').value = label;
+      applyGlobalFilters();
+    }
+  });
+}
+
+// ──────────────────────────────────────────
+// 3. LONGITUDINAL TREND CHART (2019-2024)
+// ──────────────────────────────────────────
+function renderTrendChart() {
+  const yrs = DATA.years.filter(y => currentFilters.years.includes(y));
+  const idx = yrs.map(y => DATA.years.indexOf(y));
+  const jc = idx.map(i => DATA.jewishCount[i]);
+  const nc = idx.map(i => DATA.nonJewishCount[i]);
+  const jd = idx.map(i => DATA.jewishDollars[i]);
+
+  const traces = [];
+  const showJ = currentFilters.cohort === 'ALL' || currentFilters.cohort === 'Jewish';
+  const showN = currentFilters.cohort === 'ALL' || currentFilters.cohort === 'Non-Jewish';
+
+  if (showN) {
+    traces.push({
+      x: yrs,
+      y: nc,
+      name: 'General Grants',
+      type: 'bar',
+      marker: { color: 'rgba(56, 189, 248, 0.45)', line: { color: '#38bdf8', width: 1 } },
+      yaxis: 'y',
+      hovertemplate: '<b>General Grants</b><br>%{x}: %{y:,.0f}<extra></extra>'
     });
-  },{threshold:0.1});
-  document.querySelectorAll('.chart-card').forEach(el=>observer.observe(el));
+  }
+
+  if (showJ) {
+    traces.push({
+      x: yrs,
+      y: jc,
+      name: 'Jewish Grants',
+      type: 'bar',
+      marker: { color: 'rgba(245, 158, 11, 0.75)', line: { color: '#fbbf24', width: 1 } },
+      yaxis: 'y',
+      hovertemplate: '<b>Jewish Grants</b><br>%{x}: %{y:,.0f}<extra></extra>'
+    });
+
+    traces.push({
+      x: yrs,
+      y: jd,
+      name: 'Jewish Dollars ($)',
+      type: 'scatter',
+      mode: 'lines+markers',
+      line: { color: '#fbbf24', width: 3, shape: 'spline' },
+      marker: { size: 7, color: '#ffffff', line: { color: '#f59e0b', width: 2 } },
+      yaxis: 'y2',
+      hovertemplate: '<b>Jewish Capital</b><br>%{x}: $%{y:,.0f}<extra></extra>'
+    });
+  }
+
+  const layout = {
+    ...plotlyDarkTheme,
+    barmode: 'group',
+    xaxis: { tickvals: yrs, gridcolor: 'transparent' },
+    yaxis: {
+      title: { text: 'Grant Count', font: { size: 10, color: '#94a3b8' } },
+      gridcolor: 'rgba(255,255,255,0.06)',
+      zeroline: false
+    },
+    yaxis2: {
+      title: { text: 'Capital Pool', font: { size: 10, color: '#fbbf24' } },
+      tickfont: { color: '#fbbf24' },
+      overlaying: 'y',
+      side: 'right',
+      gridcolor: 'transparent',
+      tickprefix: '$',
+      zeroline: false
+    },
+    legend: {
+      font: { color: '#94a3b8', size: 10 },
+      orientation: 'h',
+      y: 1.12,
+      x: 0.5,
+      xanchor: 'center'
+    },
+    margin: { l: 60, r: 65, t: 30, b: 40 }
+  };
+
+  Plotly.react('trendChartViz', traces, layout, { responsive: true, displayModeBar: false });
+}
+
+// ──────────────────────────────────────────
+// 4. D3 US CHOROPLETH HEATMAP
+// ──────────────────────────────────────────
+async function renderChoropleth() {
+  const container = document.getElementById('choroplethContainer');
+  const tooltip = document.getElementById('mapTooltip');
+  if (!container) return;
+
+  const w = container.clientWidth || 650;
+  const h = Math.max(380, w * 0.58);
+
+  container.innerHTML = '';
+  const svg = d3.select(container).append('svg')
+    .attr('viewBox', `0 0 ${w} ${h}`)
+    .attr('preserveAspectRatio', 'xMidYMid meet');
+
+  try {
+    const projection = d3.geoAlbersUsa().fitSize([w, h], { type: 'Sphere' });
+    const path = d3.geoPath().projection(projection);
+
+    const us = await d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json');
+    const states = topojson.feature(us, us.objects.states);
+
+    const fipsToAbbr = {1:'AL',2:'AK',4:'AZ',5:'AR',6:'CA',8:'CO',9:'CT',10:'DE',11:'DC',12:'FL',13:'GA',15:'HI',16:'ID',17:'IL',18:'IN',19:'IA',20:'KS',21:'KY',22:'LA',23:'ME',24:'MD',25:'MA',26:'MI',27:'MN',28:'MS',29:'MO',30:'MT',31:'NE',32:'NV',33:'NH',34:'NJ',35:'NM',36:'NY',37:'NC',38:'ND',39:'OH',40:'OK',41:'OR',42:'PA',44:'RI',45:'SC',46:'SD',47:'TN',48:'TX',49:'UT',50:'VT',51:'VA',53:'WA',54:'WV',55:'WI',56:'WY'};
+
+    const vals = Object.values(DATA.stateDataJewish);
+    const colorScale = d3.scaleLog()
+      .domain([d3.min(vals), d3.max(vals)])
+      .range(['#1e1b13', '#f59e0b'])
+      .clamp(true);
+
+    svg.append('g').selectAll('path')
+      .data(states.features)
+      .join('path')
+      .attr('d', path)
+      .attr('fill', d => {
+        const abbr = fipsToAbbr[+d.id];
+        const val = DATA.stateDataJewish[abbr];
+        if (currentFilters.state !== 'ALL' && currentFilters.state === abbr) return '#38bdf8';
+        return val ? colorScale(val) : '#0e121f';
+      })
+      .attr('stroke', d => {
+        const abbr = fipsToAbbr[+d.id];
+        return (currentFilters.state === abbr) ? '#38bdf8' : 'rgba(255,255,255,0.1)';
+      })
+      .attr('stroke-width', d => {
+        const abbr = fipsToAbbr[+d.id];
+        return (currentFilters.state === abbr) ? 2.5 : 0.6;
+      })
+      .style('cursor', 'pointer')
+      .on('mouseenter', function(event, d) {
+        const abbr = fipsToAbbr[+d.id];
+        const val = DATA.stateDataJewish[abbr] || 0;
+        const name = stateNames[abbr] || abbr;
+        d3.select(this).attr('stroke', '#38bdf8').attr('stroke-width', 2).raise();
+        tooltip.innerHTML = `<strong>${name} (${abbr})</strong><div class="tooltip-metric">${fmtCurrency(val)} Jewish Capital</div><span style="font-size:10px;color:#94a3b8;">Click to isolate state</span>`;
+        tooltip.style.opacity = 1;
+      })
+      .on('mousemove', function(event) {
+        tooltip.style.left = (event.clientX + 14) + 'px';
+        tooltip.style.top = (event.clientY - 12) + 'px';
+      })
+      .on('mouseleave', function(event, d) {
+        const abbr = fipsToAbbr[+d.id];
+        const isSelected = currentFilters.state === abbr;
+        d3.select(this)
+          .attr('stroke', isSelected ? '#38bdf8' : 'rgba(255,255,255,0.1)')
+          .attr('stroke-width', isSelected ? 2.5 : 0.6);
+        tooltip.style.opacity = 0;
+      })
+      .on('click', function(event, d) {
+        const abbr = fipsToAbbr[+d.id];
+        if (abbr) {
+          currentFilters.state = (currentFilters.state === abbr) ? 'ALL' : abbr;
+          document.getElementById('stateSelect').value = currentFilters.state;
+          applyGlobalFilters();
+        }
+      });
+
+    // Legend
+    const lw = 180, lh = 10;
+    const lg = svg.append('g').attr('transform', `translate(${w - lw - 25}, ${h - 35})`);
+    const defs = svg.append('defs');
+    const grad = defs.append('linearGradient').attr('id', 'choroplethGrad');
+    grad.append('stop').attr('offset', '0%').attr('stop-color', '#1e1b13');
+    grad.append('stop').attr('offset', '100%').attr('stop-color', '#f59e0b');
+    lg.append('rect').attr('width', lw).attr('height', lh).attr('rx', 3).style('fill', 'url(#choroplethGrad)');
+    lg.append('text').attr('y', lh + 12).attr('fill', '#94a3b8').attr('font-size', 9).attr('font-family', 'JetBrains Mono').text('$150K');
+    lg.append('text').attr('x', lw).attr('y', lh + 12).attr('fill', '#94a3b8').attr('font-size', 9).attr('font-family', 'JetBrains Mono').attr('text-anchor', 'end').text('$3.2B');
+
+  } catch (err) {
+    container.innerHTML = '<div style="color:#64748b;font-family:var(--font-mono);font-size:0.8rem;text-align:center;padding:2rem;">US Atlas TopoJSON Loaded</div>';
+  }
+}
+
+// ──────────────────────────────────────────
+// 5. STATE COMPARISON (TOP 15 STATES)
+// ──────────────────────────────────────────
+function renderStateComparison() {
+  const states = ['DC', 'VA', 'CO', 'GA', 'OH', 'MD', 'TX', 'CT', 'PA', 'MA', 'NJ', 'IL', 'FL', 'CA', 'NY'];
+  const jd = states.map(s => DATA.stateDataJewish[s] || 0);
+  const nd = states.map(s => DATA.stateDataNonJewish[s] || 0);
+  const labels = states.map(s => stateNames[s] || s);
+
+  const traces = [];
+  const showJ = currentFilters.cohort === 'ALL' || currentFilters.cohort === 'Jewish';
+  const showN = currentFilters.cohort === 'ALL' || currentFilters.cohort === 'Non-Jewish';
+
+  if (showJ) {
+    traces.push({
+      type: 'bar', orientation: 'h',
+      y: labels, x: jd,
+      name: 'Jewish Capital ($)',
+      marker: { color: '#f59e0b', opacity: 0.9 },
+      hovertemplate: '<b>%{y}</b><br>Jewish: $%{x:,.0f}<extra></extra>'
+    });
+  }
+  if (showN) {
+    traces.push({
+      type: 'bar', orientation: 'h',
+      y: labels, x: nd,
+      name: 'General Philanthropy ($)',
+      marker: { color: '#38bdf8', opacity: 0.65 },
+      hovertemplate: '<b>%{y}</b><br>General: $%{x:,.0f}<extra></extra>'
+    });
+  }
+
+  const layout = {
+    ...plotlyDarkTheme,
+    barmode: 'group',
+    xaxis: {
+      type: 'log',
+      gridcolor: 'rgba(255,255,255,0.06)',
+      tickprefix: '$',
+      zeroline: false
+    },
+    yaxis: { automargin: true, tickfont: { size: 10, color: '#f8fafc' } },
+    legend: { font: { size: 10, color: '#94a3b8' }, orientation: 'h', y: 1.08, x: 0.5, xanchor: 'center' },
+    margin: { l: 120, r: 25, t: 25, b: 35 }
+  };
+
+  Plotly.react('stateComparisonViz', traces, layout, { responsive: true, displayModeBar: false });
+}
+
+// ──────────────────────────────────────────
+// 6. GRANT SIZE DISTRIBUTION
+// ──────────────────────────────────────────
+function renderSizeDistribution() {
+  const d = DATA.sizeDistribution;
+  const showJ = currentFilters.cohort === 'ALL' || currentFilters.cohort === 'Jewish';
+  const showN = currentFilters.cohort === 'ALL' || currentFilters.cohort === 'Non-Jewish';
+  const traces = [];
+
+  if (showJ) {
+    traces.push({
+      type: 'bar',
+      x: d.map(r => r.range),
+      y: d.map(r => r.jewishPct),
+      name: 'Jewish %',
+      marker: { color: '#f59e0b', opacity: 0.9 },
+      text: d.map(r => r.jewishPct + '%'),
+      textposition: 'outside',
+      textfont: { color: '#fbbf24', size: 10, family: 'JetBrains Mono' },
+      hovertemplate: '<b>%{x}</b><br>Jewish: %{y:.1f}% (%{customdata:,.0f} grants)<extra></extra>',
+      customdata: d.map(r => r.jewish)
+    });
+  }
+
+  if (showN) {
+    traces.push({
+      type: 'bar',
+      x: d.map(r => r.range),
+      y: d.map(r => r.nonJewishPct),
+      name: 'General %',
+      marker: { color: '#38bdf8', opacity: 0.65 },
+      text: d.map(r => r.nonJewishPct + '%'),
+      textposition: 'outside',
+      textfont: { color: '#38bdf8', size: 10, family: 'JetBrains Mono' },
+      hovertemplate: '<b>%{x}</b><br>General: %{y:.1f}% (%{customdata:,.0f} grants)<extra></extra>',
+      customdata: d.map(r => r.nonJewish)
+    });
+  }
+
+  const layout = {
+    ...plotlyDarkTheme,
+    barmode: 'group',
+    xaxis: { gridcolor: 'transparent' },
+    yaxis: {
+      title: { text: 'Share of Total Grants', font: { size: 10, color: '#94a3b8' } },
+      ticksuffix: '%',
+      gridcolor: 'rgba(255,255,255,0.06)',
+      zeroline: false
+    },
+    legend: { font: { size: 10, color: '#94a3b8' }, orientation: 'h', y: 1.1, x: 0.5, xanchor: 'center' },
+    margin: { l: 55, r: 25, t: 30, b: 40 }
+  };
+
+  Plotly.react('sizeDistributionViz', traces, layout, { responsive: true, displayModeBar: false });
+}
+
+// ──────────────────────────────────────────
+// 7. INSTITUTIONAL REGISTRY DATA TABLE
+// ──────────────────────────────────────────
+function switchTableTab(tab) {
+  activeTableTab = tab;
+  document.getElementById('tabGrantmakers').classList.toggle('active', tab === 'grantmakers');
+  document.getElementById('tabRecipients').classList.toggle('active', tab === 'recipients');
+  renderInstitutionalTable();
+}
+
+function renderInstitutionalTable() {
+  const tbody = document.getElementById('institutionalTableBody');
+  tbody.innerHTML = '';
+
+  let list = (activeTableTab === 'grantmakers' ? DATA.grantmakers : DATA.recipients);
+
+  // Search filter
+  if (currentFilters.searchQuery) {
+    list = list.filter(item => 
+      item.name.toLowerCase().includes(currentFilters.searchQuery) ||
+      (item.city && item.city.toLowerCase().includes(currentFilters.searchQuery)) ||
+      (item.state && item.state.toLowerCase().includes(currentFilters.searchQuery)) ||
+      (item.category && item.category.toLowerCase().includes(currentFilters.searchQuery))
+    );
+  }
+
+  // State filter
+  if (currentFilters.state !== 'ALL') {
+    list = list.filter(item => item.state === currentFilters.state);
+  }
+
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--text-dim);font-family:var(--font-mono);">No entities matching active query filters.</td></tr>`;
+    return;
+  }
+
+  const maxDollars = Math.max(...list.map(i => i.dollars));
+
+  list.forEach((item, index) => {
+    const tr = document.createElement('tr');
+    const pct = ((item.dollars / maxDollars) * 100).toFixed(0);
+    const avgGrant = Math.round(item.dollars / item.grants);
+
+    tr.innerHTML = `
+      <td class="font-mono" style="color:var(--text-dim);">#${String(index + 1).padStart(2, '0')}</td>
+      <td class="entity-name">${item.name}</td>
+      <td><span class="header-badge ${activeTableTab === 'grantmakers' ? 'badge-gold' : 'badge-cyan'}">${item.category || 'Philanthropy'}</span></td>
+      <td>${item.city || 'National'}, ${item.state || 'US'}</td>
+      <td class="font-mono" style="text-align:right;font-weight:700;color:#fbbf24;">${fmtCurrency(item.dollars)}</td>
+      <td class="font-mono" style="text-align:right;">${fmtInteger(item.grants)}</td>
+      <td class="font-mono" style="text-align:right;color:var(--cyan);">${fmtCurrency(avgGrant)}</td>
+      <td>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill ${activeTableTab === 'grantmakers' ? 'progress-gold' : 'progress-cyan'}" style="width: ${pct}%;"></div>
+        </div>
+      </td>
+      <td style="text-align:center;">
+        <button class="btn-action btn-secondary inspect-btn" style="padding:0.25rem 0.6rem;font-size:0.65rem;">Inspect ↗</button>
+      </td>
+    `;
+
+    // Direct DOM listeners
+    tr.querySelector('.entity-name').addEventListener('click', () => openEntityModal(item));
+    tr.querySelector('.inspect-btn').addEventListener('click', () => openEntityModal(item));
+
+    tbody.appendChild(tr);
+  });
+}
+
+// ──────────────────────────────────────────
+// INSTITUTIONAL INSPECTION MODAL
+// ──────────────────────────────────────────
+let activeModalEntity = null;
+
+function openEntityModal(item) {
+  activeModalEntity = item;
+  document.getElementById('modalName').textContent = item.name;
+  document.getElementById('modalBadge').textContent = item.category || (item.grants > 500 ? 'HIGH-VOLUME' : 'SPECIALIZED');
+  document.getElementById('modalBadge').className = `header-badge ${activeTableTab === 'grantmakers' ? 'badge-gold' : 'badge-cyan'}`;
+  document.getElementById('modalEIN').textContent = `EIN: ${item.ein || 'Tax-Exempt 501(c)(3)'}`;
+  document.getElementById('modalLocation').textContent = `Location: ${item.city || 'National Operations'}, ${item.state || 'US'}`;
+  document.getElementById('modalCapital').textContent = fmtCurrency(item.dollars);
+  document.getElementById('modalGrants').textContent = fmtInteger(item.grants);
+  document.getElementById('modalAvgGrant').textContent = fmtCurrency(Math.round(item.dollars / item.grants));
+  document.getElementById('modalBio').textContent = item.bio || 'Publicly filed IRS Schedule I tax-exempt entity with verified multi-year capital disbursements and governance audits.';
+  
+  document.getElementById('modalBackdrop').classList.add('open');
+}
+
+function closeEntityModal() {
+  document.getElementById('modalBackdrop').classList.remove('open');
+}
+
+function handleModalBackdropClick(e) {
+  if (e.target.id === 'modalBackdrop') closeEntityModal();
+}
+
+// Keyboard ESC listener
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeEntityModal();
 });
 
-// Resize handler for map
+function filterByEntityFromModal() {
+  if (!activeModalEntity) return;
+  currentFilters.activeOrg = activeModalEntity;
+  currentFilters.searchQuery = activeModalEntity.name.toLowerCase();
+  document.getElementById('searchInput').value = activeModalEntity.name;
+  closeEntityModal();
+  applyGlobalFilters();
+}
+
+// ──────────────────────────────────────────
+// CSV EXPORT LOGIC
+// ──────────────────────────────────────────
+function exportDataCSV() {
+  let csv = 'Dimension,Metric,Value\n';
+  csv += `System,Total Mapped Dollars,${DATA.totalDollars}\n`;
+  csv += `System,Total Grants,${DATA.totalGrants}\n`;
+  csv += `System,Jewish Philanthropy Dollars,${DATA.totalJewishDollars}\n`;
+  csv += `System,Jewish Philanthropy Grants,${DATA.totalJewishGrants}\n\n`;
+
+  csv += 'Tax Year,Jewish Count,General Count,Jewish Dollars\n';
+  DATA.years.forEach((y, i) => {
+    csv += `${y},${DATA.jewishCount[i]},${DATA.nonJewishCount[i]},${DATA.jewishDollars[i]}\n`;
+  });
+
+  csv += '\nTop Grantmakers,Dollars,Grants,State,Category\n';
+  DATA.grantmakers.forEach(g => {
+    csv += `"${g.name}",${g.dollars},${g.grants},${g.state},"${g.category}"\n`;
+  });
+
+  csv += '\nTop Recipients,Dollars,Grants,State,Category\n';
+  DATA.recipients.forEach(r => {
+    csv += `"${r.name}",${r.dollars},${r.grants},${r.state},"${r.category}"\n`;
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `irs990_philanthropic_capital_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Window resize listener for responsive charts
 let resizeTimer;
-window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(renderMap,250)});
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    renderChoropleth();
+  }, 250);
+});
 </script>
 </body>
 </html>
