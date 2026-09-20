@@ -721,42 +721,157 @@ body {
 }
 
 /* ──────────────────────────────────────────────────────────
-   MAP STYLING (D3 US ATLAS)
+   MAP STYLING (D3 US ATLAS) & EXECUTIVE TOOLTIP
    ────────────────────────────────────────────────────────── */
 .map-container {
   position: relative;
   width: 100%;
   min-height: 440px;
 }
-.map-container svg { width: 100%; height: auto; display: block; }
+.map-container svg { width: 100%; height: auto; display: block; overflow: visible; }
+.map-container svg path {
+  transition: fill 0.15s ease, stroke 0.15s ease, stroke-width 0.15s ease;
+}
+
 .map-tooltip {
   position: fixed;
-  background: rgba(10, 15, 28, 0.95);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--cyan);
-  border-radius: var(--radius-sm);
-  padding: 0.65rem 0.9rem;
+  top: 0;
+  left: 0;
+  background: rgba(5, 5, 7, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-md);
+  padding: 0.9rem 1.15rem;
   color: var(--text);
-  font-size: 0.75rem;
   pointer-events: none;
-  z-index: 2000;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+  z-index: 999999;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.85), 0 0 30px rgba(245, 158, 11, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.08);
   opacity: 0;
-  transition: opacity 0.12s ease;
-  min-width: 160px;
+  will-change: transform, opacity;
+  transition: opacity 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+  min-width: 270px;
+  max-width: 340px;
 }
-.map-tooltip strong {
-  color: #fff;
-  font-size: 0.85rem;
-  display: block;
+
+.map-tooltip .tooltip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.55rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.map-tooltip .tooltip-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.map-tooltip .tooltip-state-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.map-tooltip .tooltip-state-abbr {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: rgba(56, 189, 248, 0.12);
+  color: var(--cyan);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.map-tooltip .tooltip-rank-badge {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 9999px;
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--gold-light);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  white-space: nowrap;
+}
+
+.map-tooltip .tooltip-primary-metric {
+  margin-bottom: 0.6rem;
+}
+
+.map-tooltip .tooltip-metric-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
   margin-bottom: 0.2rem;
 }
-.map-tooltip .tooltip-metric {
+
+.map-tooltip .tooltip-metric-value {
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: 1.3rem;
+  font-weight: 800;
   color: var(--gold-light);
-  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.map-tooltip .tooltip-metric-sub {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #94a3b8;
+  margin-left: 0.25rem;
+}
+
+.map-tooltip .tooltip-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem 0.75rem;
+  padding: 0.5rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 0.55rem;
+}
+
+.map-tooltip .tooltip-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.map-tooltip .stat-lbl {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+}
+
+.map-tooltip .stat-val {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.map-tooltip .tooltip-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.35rem;
+}
+
+.map-tooltip .tooltip-action-hint {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--cyan);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
 }
 
 /* ──────────────────────────────────────────────────────────
@@ -1197,7 +1312,6 @@ body {
         </div>
       </div>
       <div class="map-container" id="choroplethContainer"></div>
-      <div class="map-tooltip" id="mapTooltip"></div>
     </div>
   </section>
 
@@ -1262,6 +1376,9 @@ body {
   </section>
 
 </main>
+
+<!-- EXECUTIVE INDUSTRIAL DARK CHOROPLETH TOOLTIP -->
+<div class="map-tooltip" id="mapTooltip"></div>
 
 <!-- INSTITUTIONAL DETAIL MODAL (APPLE HIG INSPECTOR SHEET) -->
 <div class="modal-backdrop" id="modalBackdrop" onclick="handleModalBackdropClick(event)">
@@ -1500,12 +1617,35 @@ let isGlobeRotating = true;
 
 // Formatters
 function fmtCurrency(n) {
+  if (n === null || n === undefined || isNaN(n)) return '$0';
   if (n >= 1e9) return '$' + (n / 1e9).toFixed(1) + 'B';
   if (n >= 1e6) return '$' + (n / 1e6).toFixed(0) + 'M';
   if (n >= 1e3) return '$' + (n / 1e3).toFixed(0) + 'K';
   return '$' + Math.round(n).toLocaleString('en-US');
 }
-function fmtInteger(n) { return Math.round(n).toLocaleString('en-US'); }
+function fmtFinancialCompact(n) {
+  if (n === null || n === undefined || isNaN(n)) return '$0';
+  if (n >= 1e9) return '$' + (n / 1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return '$' + (n / 1e3).toFixed(1) + 'K';
+  return '$' + Math.round(n).toLocaleString('en-US');
+}
+function fmtExactCurrency(n) {
+  if (n === null || n === undefined || isNaN(n)) return '$0';
+  return '$' + Math.round(n).toLocaleString('en-US');
+}
+function fmtInteger(n) { 
+  if (n === null || n === undefined || isNaN(n)) return '0';
+  return Math.round(n).toLocaleString('en-US'); 
+}
+
+// Pre-calculated State Ranks by Jewish Philanthropic Capital
+const stateRankMap = {};
+Object.entries(DATA.stateDataJewish)
+  .sort((a, b) => b[1] - a[1])
+  .forEach(([st, val], idx) => {
+    stateRankMap[st] = idx + 1;
+  });
 
 // ──────────────────────────────────────────
 // INITIALIZATION
@@ -2160,12 +2300,24 @@ function renderTrendChart() {
 }
 
 // ──────────────────────────────────────────
-// 4. D3 US CHOROPLETH HEATMAP
+// 4. D3 US CHOROPLETH HEATMAP & EXECUTIVE TOOLTIP
 // ──────────────────────────────────────────
+let usAtlasCache = null;
+
 async function renderChoropleth() {
   const container = document.getElementById('choroplethContainer');
-  const tooltip = document.getElementById('mapTooltip');
   if (!container) return;
+
+  // Ensure tooltip is mounted directly to document.body to avoid stacking context & backdrop-filter issues
+  let tooltip = document.getElementById('mapTooltip');
+  if (!tooltip) {
+    tooltip = document.createElement('div');
+    tooltip.id = 'mapTooltip';
+    tooltip.className = 'map-tooltip';
+    document.body.appendChild(tooltip);
+  } else if (tooltip.parentElement !== document.body) {
+    document.body.appendChild(tooltip);
+  }
 
   const w = container.clientWidth || 650;
   const h = Math.max(380, w * 0.58);
@@ -2173,13 +2325,42 @@ async function renderChoropleth() {
   container.innerHTML = '';
   const svg = d3.select(container).append('svg')
     .attr('viewBox', `0 0 ${w} ${h}`)
-    .attr('preserveAspectRatio', 'xMidYMid meet');
+    .attr('preserveAspectRatio', 'xMidYMid meet')
+    .style('overflow', 'visible');
+
+  // Buttery smooth cursor-tracking positioner with hardware acceleration & viewport clamping
+  function positionTooltip(event) {
+    if (!tooltip) return;
+    const tw = tooltip.offsetWidth || 280;
+    const th = tooltip.offsetHeight || 160;
+    
+    let x = event.clientX + 16;
+    let y = event.clientY - 16;
+    
+    // Flip horizontally if overflowing window width
+    if (event.clientX + tw + 20 > window.innerWidth) {
+      x = event.clientX - tw - 16;
+    }
+    // Flip vertically if overflowing window height
+    if (event.clientY + th + 20 > window.innerHeight) {
+      y = event.clientY - th - 16;
+    }
+    
+    // Clamp within viewport
+    x = Math.max(12, Math.min(window.innerWidth - tw - 12, x));
+    y = Math.max(12, Math.min(window.innerHeight - th - 12, y));
+
+    tooltip.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
+  }
 
   try {
     const projection = d3.geoAlbersUsa().fitSize([w, h], { type: 'Sphere' });
     const path = d3.geoPath().projection(projection);
 
-    const us = await d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json');
+    if (!usAtlasCache) {
+      usAtlasCache = await d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json');
+    }
+    const us = usAtlasCache;
     const states = topojson.feature(us, us.objects.states);
 
     const fipsToAbbr = {1:'AL',2:'AK',4:'AZ',5:'AR',6:'CA',8:'CO',9:'CT',10:'DE',11:'DC',12:'FL',13:'GA',15:'HI',16:'ID',17:'IL',18:'IN',19:'IA',20:'KS',21:'KY',22:'LA',23:'ME',24:'MD',25:'MA',26:'MI',27:'MN',28:'MS',29:'MO',30:'MT',31:'NE',32:'NV',33:'NH',34:'NJ',35:'NM',36:'NY',37:'NC',38:'ND',39:'OH',40:'OK',41:'OR',42:'PA',44:'RI',45:'SC',46:'SD',47:'TN',48:'TX',49:'UT',50:'VT',51:'VA',53:'WA',54:'WV',55:'WI',56:'WY'};
@@ -2190,10 +2371,14 @@ async function renderChoropleth() {
       .range(['#1e1b13', '#f59e0b'])
       .clamp(true);
 
-    svg.append('g').selectAll('path')
+    const stateGroup = svg.append('g').attr('class', 'states-layer');
+
+    stateGroup.selectAll('path')
       .data(states.features)
       .join('path')
       .attr('d', path)
+      .attr('data-fips', d => d.id)
+      .attr('data-state', d => fipsToAbbr[+d.id] || '')
       .attr('fill', d => {
         const abbr = fipsToAbbr[+d.id];
         const val = DATA.stateDataJewish[abbr];
@@ -2202,7 +2387,7 @@ async function renderChoropleth() {
       })
       .attr('stroke', d => {
         const abbr = fipsToAbbr[+d.id];
-        return (currentFilters.state === abbr) ? '#38bdf8' : 'rgba(255,255,255,0.1)';
+        return (currentFilters.state === abbr) ? '#38bdf8' : 'rgba(255,255,255,0.12)';
       })
       .attr('stroke-width', d => {
         const abbr = fipsToAbbr[+d.id];
@@ -2211,23 +2396,80 @@ async function renderChoropleth() {
       .style('cursor', 'pointer')
       .on('mouseenter', function(event, d) {
         const abbr = fipsToAbbr[+d.id];
+        if (!abbr) return;
         const val = DATA.stateDataJewish[abbr] || 0;
         const name = stateNames[abbr] || abbr;
-        d3.select(this).attr('stroke', '#38bdf8').attr('stroke-width', 2).raise();
-        tooltip.innerHTML = `<strong>${name} (${abbr})</strong><div class="tooltip-metric">${fmtCurrency(val)} Jewish Capital</div><span style="font-size:10px;color:#94a3b8;">Click to isolate state</span>`;
-        tooltip.style.opacity = 1;
+        const rank = stateRankMap[abbr] || '—';
+        const nationalShare = ((val / DATA.totalJewishDollars) * 100).toFixed(2);
+        const estGrants = Math.round(val / 38483);
+        const totalStatePool = DATA.stateDataNonJewish[abbr] 
+          ? (DATA.stateDataNonJewish[abbr] + val) 
+          : Math.round(val * 42);
+        const isSelected = currentFilters.state === abbr;
+
+        // Immediate tactile visual feedback on hovered state polygon
+        d3.select(this)
+          .transition()
+          .duration(120)
+          .attr('fill', '#fbbf24')
+          .attr('stroke', '#38bdf8')
+          .attr('stroke-width', 2.8)
+          .style('filter', 'drop-shadow(0 0 10px rgba(245, 158, 11, 0.75))');
+
+        this.parentNode.appendChild(this); // Raise hovered state to top of SVG
+
+        // Populate Executive Dark Tooltip UI
+        tooltip.innerHTML = `
+          <div class="tooltip-header">
+            <div class="tooltip-title-wrap">
+              <span class="tooltip-state-name">${name}</span>
+              <span class="tooltip-state-abbr">${abbr}</span>
+            </div>
+            <span class="tooltip-rank-badge">RANK #${rank} IN U.S.</span>
+          </div>
+          <div class="tooltip-primary-metric">
+            <div class="tooltip-metric-label">Jewish Philanthropic Capital</div>
+            <div class="tooltip-metric-value">${fmtFinancialCompact(val)} <span class="tooltip-metric-sub">(${fmtExactCurrency(val)})</span></div>
+          </div>
+          <div class="tooltip-grid">
+            <div class="tooltip-stat">
+              <span class="stat-lbl">National Share</span>
+              <span class="stat-val" style="color: var(--gold-light);">${nationalShare}%</span>
+            </div>
+            <div class="tooltip-stat">
+              <span class="stat-lbl">Est. Transactions</span>
+              <span class="stat-val">${fmtInteger(estGrants)} Grants</span>
+            </div>
+            <div class="tooltip-stat" style="grid-column: span 2;">
+              <span class="stat-lbl">Total State Philanthropic Pool (All IRS 990)</span>
+              <span class="stat-val" style="color: var(--cyan);">${fmtFinancialCompact(totalStatePool)} <span style="font-size:0.68rem;color:#94a3b8;font-weight:400;">(${fmtExactCurrency(totalStatePool)})</span></span>
+            </div>
+          </div>
+          <div class="tooltip-footer">
+            <span class="tooltip-action-hint">⚡ ${isSelected ? 'Click to clear isolation filter' : 'Click to isolate state in dashboard'}</span>
+          </div>
+        `;
+
+        positionTooltip(event);
+        tooltip.style.opacity = '1';
       })
       .on('mousemove', function(event) {
-        tooltip.style.left = (event.clientX + 14) + 'px';
-        tooltip.style.top = (event.clientY - 12) + 'px';
+        positionTooltip(event);
       })
       .on('mouseleave', function(event, d) {
         const abbr = fipsToAbbr[+d.id];
         const isSelected = currentFilters.state === abbr;
+        const val = abbr ? (DATA.stateDataJewish[abbr] || 0) : 0;
+
         d3.select(this)
-          .attr('stroke', isSelected ? '#38bdf8' : 'rgba(255,255,255,0.1)')
-          .attr('stroke-width', isSelected ? 2.5 : 0.6);
-        tooltip.style.opacity = 0;
+          .transition()
+          .duration(160)
+          .attr('fill', isSelected ? '#38bdf8' : (val ? colorScale(val) : '#0e121f'))
+          .attr('stroke', isSelected ? '#38bdf8' : 'rgba(255,255,255,0.12)')
+          .attr('stroke-width', isSelected ? 2.5 : 0.6)
+          .style('filter', isSelected ? 'drop-shadow(0 0 8px rgba(56, 189, 248, 0.5))' : 'none');
+
+        tooltip.style.opacity = '0';
       })
       .on('click', function(event, d) {
         const abbr = fipsToAbbr[+d.id];
@@ -2237,6 +2479,11 @@ async function renderChoropleth() {
           applyGlobalFilters();
         }
       });
+
+    // Dismiss tooltip when leaving svg canvas
+    svg.on('mouseleave', () => {
+      if (tooltip) tooltip.style.opacity = '0';
+    });
 
     // Legend
     const lw = 180, lh = 10;
@@ -2250,6 +2497,7 @@ async function renderChoropleth() {
     lg.append('text').attr('x', lw).attr('y', lh + 12).attr('fill', '#94a3b8').attr('font-size', 9).attr('font-family', 'JetBrains Mono').attr('text-anchor', 'end').text('$3.2B');
 
   } catch (err) {
+    console.error('Choropleth render error:', err);
     container.innerHTML = '<div style="color:#64748b;font-family:var(--font-mono);font-size:0.8rem;text-align:center;padding:2rem;">US Atlas TopoJSON Loaded</div>';
   }
 }
