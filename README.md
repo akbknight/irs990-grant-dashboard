@@ -42,10 +42,12 @@ flowchart TD
 ```
 
 ### Architecture Highlights:
-1. **Zero-API Ingestion Dependency**: Operates over normalized tabular extracts derived directly from authoritative IRS AWS e-file archives without rate limits or recurring third-party API costs.
-2. **Deterministic Entity Classification**: Automated rule engine categorizing funding flows into Higher Education, Medical Research, Religion & Human Services, Civic Advocacy, and Philanthropic Intermediaries.
-3. **Sub-150ms Client-Side Filtering**: In-memory multidimensional filtering across 6 tax years, 50 states, 10 sectors, and grant brackets with instantaneous DOM updates and zero page reloads.
-4. **Executive Industrial Dark UI**: Deep onyx (`#050507`), hairline glassmorphism (`rgba(14, 18, 28, 0.75)`), luminous cyan (`#38bdf8`) and amber (`#f59e0b`) accents matching the core portfolio design token architecture.
+1. **Dual-Tier Data Architecture**: Combines historical benchmarked aggregates derived from authoritative IRS AWS e-file XML archives ($550.2B in Schedule I disbursements) with real-time entity enrichment.
+2. **Live ProPublica Nonprofit Explorer API v2 & Verified 990 PDFs**: Live client-side integration querying authoritative 9-digit EINs, verified balance sheets (assets, revenues, tax years), direct links to download official IRS Form 990 / 990-PF PDFs, and registry profiles.
+3. **Source Health & Freshness Telemetry HUD**: Persistent real-time monitor displaying API connectivity, request latency, cache hit-rate (24h TTL), and data provenance badges.
+4. **Deterministic Entity Classification**: Automated rule engine categorizing funding flows into Higher Education, Medical Research, Religion & Human Services, Civic Advocacy, and Philanthropic Intermediaries.
+5. **Sub-150ms Client-Side Filtering**: In-memory multidimensional filtering across 6 tax years, 50 states, 10 sectors, and grant brackets with instantaneous DOM updates and zero page reloads.
+6. **Executive Industrial Dark UI**: Deep onyx (`#050507`), hairline glassmorphism (`rgba(14, 18, 28, 0.75)`), luminous cyan (`#38bdf8`) and amber (`#f59e0b`) accents matching the core portfolio design token architecture.
 
 ---
 
