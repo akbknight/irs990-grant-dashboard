@@ -1713,7 +1713,7 @@ body {
       <div class="panel-header">
         <div class="panel-title-group">
           <h3 class="panel-title">Institutional Outlier Matrix: Grant Size vs. Capitalization</h3>
-          <span class="panel-subtitle">Log-log distribution of 30+ major philanthropic entities. Identifies mega-grant outliers, high-frequency distributors, and specialized endowments.</span>
+          <span class="panel-subtitle">Log-log distribution of 30+ major philanthropic entities with empirical OLS scaling baseline (cyan dash). Identifies mega-grant outliers above trend and high-frequency distributors below.</span>
         </div>
         <div class="panel-controls">
           <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--cyan);">CLICK DOT TO INSPECT</span>
@@ -1727,7 +1727,7 @@ body {
       <div class="panel-header">
         <div class="panel-title-group">
           <h3 class="panel-title gold">Sector Capital Breakdown</h3>
-          <span class="panel-subtitle">Primary thematic categories for Jewish Giving ($10.6B). Click any slice to cross-filter the entire dashboard.</span>
+          <span class="panel-subtitle">Primary thematic categories for Jewish Giving ($10.6B). Category names & shares shown directly; click slice or legend to cross-filter.</span>
         </div>
       </div>
       <div id="sectorDonutViz" style="width: 100%; height: 430px;"></div>
@@ -2660,6 +2660,7 @@ function renderScatterPlot() {
   const trace = {
     x: xVals,
     y: yVals,
+    name: 'Institutions',
     mode: 'markers+text',
     text: list.map(d => d.capital > 280e6 ? d.name.split(' ')[0] : ''),
     textposition: 'top center',
@@ -2679,8 +2680,74 @@ function renderScatterPlot() {
       'Classification: %{customdata[1]}<extra></extra>'
   };
 
+  // Calculate Log-Linear OLS Regression Trendline across institutions
+  // log10(Mean Grant) = alpha + beta * log10(Capital Pool)
+  let trendTrace = null;
+  if (xVals.length >= 2) {
+    const validPairs = [];
+    for (let i = 0; i < xVals.length; i++) {
+      if (xVals[i] > 0 && yVals[i] > 0) {
+        validPairs.push({ lx: Math.log10(xVals[i]), ly: Math.log10(yVals[i]), x: xVals[i] });
+      }
+    }
+    if (validPairs.length >= 2) {
+      const n = validPairs.length;
+      let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0, sumYY = 0;
+      validPairs.forEach(p => {
+        sumX += p.lx;
+        sumY += p.ly;
+        sumXY += p.lx * p.ly;
+        sumXX += p.lx * p.lx;
+        sumYY += p.ly * p.ly;
+      });
+      const denom = (n * sumXX - sumX * sumX);
+      const slope = denom !== 0 ? (n * sumXY - sumX * sumY) / denom : 0;
+      const intercept = (sumY - slope * sumX) / n;
+      const numR = (n * sumXY - sumX * sumY);
+      const denR = Math.sqrt((n * sumXX - sumX * sumX) * (n * sumYY - sumY * sumY));
+      const r2 = denR > 0 ? Math.pow(numR / denR, 2) : 0;
+
+      // Span from minimum x to maximum x
+      const sortedX = validPairs.map(p => p.x).sort((a, b) => a - b);
+      const minX = sortedX[0] * 0.85;
+      const maxX = sortedX[sortedX.length - 1] * 1.15;
+      const predYMin = Math.pow(10, intercept + slope * Math.log10(minX));
+      const predYMax = Math.pow(10, intercept + slope * Math.log10(maxX));
+
+      trendTrace = {
+        x: [minX, Math.sqrt(minX * maxX), maxX],
+        y: [predYMin, Math.pow(10, intercept + slope * Math.log10(Math.sqrt(minX * maxX))), predYMax],
+        mode: 'lines',
+        name: 'OLS Baseline (β: ' + slope.toFixed(2) + ')',
+        line: {
+          color: '#38bdf8',
+          width: 2,
+          dash: 'dash'
+        },
+        hoverinfo: 'all',
+        hovertemplate: 
+          '<b>Log-Linear Scaling Trend (OLS Baseline)</b><br>' +
+          'Capital Pool: $%{x:,.0f}<br>' +
+          'Expected Mean Grant: $%{y:,.0f}<br>' +
+          'Scaling Exponent: ' + slope.toFixed(2) + ' (R2: ' + r2.toFixed(2) + ')<extra></extra>'
+      };
+    }
+  }
+
+  const traces = trendTrace ? [trace, trendTrace] : [trace];
+
   const layout = {
     ...plotlyDarkTheme,
+    showlegend: true,
+    legend: {
+      orientation: 'v',
+      x: 0.02,
+      y: 0.98,
+      font: { family: 'JetBrains Mono, monospace', size: 9, color: '#cbd5e1' },
+      bgcolor: 'rgba(15, 23, 42, 0.85)',
+      bordercolor: 'rgba(255, 255, 255, 0.12)',
+      borderwidth: 1
+    },
     xaxis: {
       type: 'log',
       title: { text: 'Annual Capital Pool (Log Scale $)', font: { size: 10, color: '#64748b' } },
@@ -2719,16 +2786,16 @@ function renderScatterPlot() {
         ax: 30, ay: 25
       }
     ],
-    margin: { l: 65, r: 25, t: 20, b: 45 }
+    margin: { l: 65, r: 25, t: 25, b: 45 }
   };
 
-  Plotly.react('scatterPlotViz', [trace], layout, { responsive: true, displayModeBar: false });
+  Plotly.react('scatterPlotViz', traces, layout, { responsive: true, displayModeBar: false });
 
-  // On click scatter dot: open inspector
+  // On click scatter dot: open inspector (ignore click on trendline trace)
   const scatterEl = document.getElementById('scatterPlotViz');
   if (scatterEl.removeAllListeners) scatterEl.removeAllListeners('plotly_click');
   scatterEl.on('plotly_click', (data) => {
-    if (data.points && data.points[0]) {
+    if (data.points && data.points[0] && data.points[0].curveNumber === 0) {
       const idx = data.points[0].pointIndex;
       const entity = list[idx];
       if (entity) {
@@ -2750,12 +2817,16 @@ function renderSectorDonut() {
     values: subs.map(s => s.dollars * m),
     labels: subs.map(s => s.name),
     type: 'pie',
-    hole: 0.62,
+    hole: 0.58,
     marker: {
       colors: subs.map(s => s.color),
       line: { color: '#0d121f', width: 2 }
     },
-    textinfo: 'none',
+    textinfo: 'label+percent',
+    textposition: 'outside',
+    textfont: { family: 'Inter, sans-serif', size: 9, color: '#cbd5e1' },
+    outsidetextfont: { family: 'Inter, sans-serif', size: 9, color: '#cbd5e1' },
+    automargin: true,
     hovertemplate: '<b>%{label}</b><br>Capital: $%{value:,.0f}<br>Share: %{percent}<extra></extra>',
     sort: false
   };
@@ -2765,16 +2836,24 @@ function renderSectorDonut() {
 
   const layout = {
     ...plotlyDarkTheme,
-    showlegend: false,
+    showlegend: true,
+    legend: {
+      orientation: 'h',
+      x: 0.5,
+      y: -0.12,
+      xanchor: 'center',
+      yanchor: 'top',
+      font: { family: 'Inter, sans-serif', size: 9, color: '#94a3b8' }
+    },
     annotations: [
       {
-        text: `<b style="font-size:15px;color:#f8fafc;">${fmtCurrency(totalSubDollars)}</b><br><span style="font-size:10px;color:#38bdf8;font-family:JetBrains Mono;">${selectedSector}</span>`,
+        text: `<b style="font-size:14px;color:#f8fafc;">${fmtCurrency(totalSubDollars)}</b><br><span style="font-size:9px;color:#38bdf8;font-family:JetBrains Mono;">${selectedSector}</span>`,
         showarrow: false,
-        font: { family: 'Inter', size: 12 },
+        font: { family: 'Inter', size: 11 },
         x: 0.5, y: 0.5
       }
     ],
-    margin: { l: 15, r: 15, t: 15, b: 15 }
+    margin: { l: 25, r: 25, t: 20, b: 40 }
   };
 
   Plotly.react('sectorDonutViz', [trace], layout, { responsive: true, displayModeBar: false });

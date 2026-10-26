@@ -72,9 +72,9 @@ flowchart TD
 - Foundation HQ beacons with pulsing dynamic ripple rings.
 - Live camera orbit telemetry readout (`LAT`, `LNG`, `ALT`) and 1-click orbital presets (`U.S. Domestic`, `Israel Gateway`, `Global Outflows`, `NYC Epicenter`).
 
-### 2. 📈 Econometric Outlier Matrix (Scatter Plot)
-- Logarithmic distribution of **Institutional Capitalization vs. Average Grant Size**.
-- Quadrant categorization isolating **Mega-Grant Outliers** (e.g., Marcus Foundation at $1.55M avg grant) and **High-Frequency Distributors** (e.g., Jewish Communal Fund at 63,000+ grants).
+### 2. 📈 Econometric Outlier Matrix & Empirical Scaling Baseline
+- Logarithmic distribution of **Institutional Capitalization vs. Average Grant Size** anchored by an empirical **log-linear OLS scaling trendline** ($\log_{10} 	ext{Mean Grant} = lpha + eta \log_{10} 	ext{Capital}$, $eta \approx 0.83$, $R^2 \approx 0.28$).
+- Objective outlier detection: mathematically differentiates **Mega-Grant Outliers** (institutions plotting substantially above the scaling baseline, such as Marcus Foundation at $1.55M avg grant) from **High-Frequency Distributors** (institutions plotting below the baseline, such as Jewish Communal Fund).
 - Interactive point-click trigger opening the forensic inspection sheet for any selected entity.
 
 ### 3. 🗺️ D3.js National Choropleth Heatmap
@@ -83,7 +83,8 @@ flowchart TD
 - Direct click-to-filter interaction isolating any individual state across the entire telemetry dashboard.
 
 ### 4. 🍩 Dynamic Sector Donut & Longitudinal Trajectory
-- 10-category breakdown with center KPI metric readout and click-to-filter cross-filtering.
+- 10-category breakdown with **persistent direct callout labels and shares**, plus an explicit cross-filter legend eliminating hover-only discovery friction.
+- Center KPI metric readout dynamically responding to global cohort and sector filters.
 - Dual-axis longitudinal volume bars and smoothed spline curve tracking capital growth across 2019–2024.
 
 ### 5. 🏢 Ranked Institutional Registries & Forensic Modal
@@ -95,6 +96,24 @@ flowchart TD
 - Real-time search query matching foundation names, states, and sectors.
 - Interactive year pills, sector selectors, state filters, and cohort toggles.
 - Active filter pill HUD with 1-click removal and instant CSV data export.
+
+### 7. 🔬 Empirical Predictive Modeling Benchmark (7 Regressors vs Baselines)
+- **Research Question:** Can foundation identity, category, and location predict next-year grant size better than simple historical medians?
+- **Dataset Scope:** 93,672 positive Form 990 grant records across 2019–2021 (Train: 2019 · Validation: 2020 · Holdout Test: 2021).
+- **Candidate Benchmark (2020 Validation MAE):**
+  1. *Foundation-Specific Historical Median (Baseline):* **$72,462** (Winner)
+  2. *Log OLS Linear Regression:* **$72,635**
+  3. *Log Ridge Regression:* **$72,985**
+  4. *HistGradientBoosting (MAE loss):* **$74,325**
+  5. *HistGradientBoosting (Log target):* **$74,796**
+  6. *Extra Trees (Log target):* **$75,775**
+  7. *Random Forest (Log target):* **$75,826**
+  8. *Global Median Baseline:* **$76,889**
+  9. *Raw Target Ridge:* **$102,106**
+- **Test Holdout Result (2021):** Foundation median beats global median by **$6,351 per award (+6.9% MAE reduction)**, but overall MAE remains **$86,013** against a median grant of $10,000 ($R^2 \approx 0.022$). Errors degrade to **$94,058 MAE** on new, unseen foundations (31.7% of records).
+- **Defensible Decision:** **Do NOT deploy regression as an automated predictive grant budgeter.** The dashboard is properly positioned for historical exploration, concentration-risk analysis, and institutional transparency.
+- **Reproducibility:** Run `py -3.12 scripts/evaluate_models.py` or inspect [`reports/regression_modeling_audit.md`](reports/regression_modeling_audit.md).
+
 
 ---
 
