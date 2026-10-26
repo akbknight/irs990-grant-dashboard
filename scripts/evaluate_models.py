@@ -87,11 +87,11 @@ def fit_and_predict(model_name, train_df, test_df):
         log_target = True
     elif model_name == "Histogram boosting log":
         pipe = make_pipeline(OrdinalEncoder(handle_unknown="use_encoded_value", unknown_value=-1),
-                             HistGradientBoostingRegressor(categorical_features=[0, 1, 2], max_iter=150, max_leaf_nodes=15, l2_regularization=10, random_state=42))
+                             HistGradientBoostingRegressor(categorical_features=[0, 1, 2], max_iter=150, max_leaf_nodes=15, l2_regularization=10, early_stopping=False, random_state=42))
         log_target = True
     elif model_name == "Histogram boosting MAE":
         pipe = make_pipeline(OrdinalEncoder(handle_unknown="use_encoded_value", unknown_value=-1),
-                             HistGradientBoostingRegressor(loss="absolute_error", categorical_features=[0, 1, 2], max_iter=150, max_leaf_nodes=15, l2_regularization=10, random_state=42))
+                             HistGradientBoostingRegressor(loss="absolute_error", categorical_features=[0, 1, 2], max_iter=150, max_leaf_nodes=15, l2_regularization=10, early_stopping=False, random_state=42))
         log_target = False
     else:
         raise ValueError(f"Unknown model: {model_name}")
@@ -142,11 +142,11 @@ def run_evaluation():
     print(f"Validation Winner: {winner} (Lowest MAE: ${min(r['MAE_USD'] for r in val_results):,.0f})")
     print("=" * 70 + "\n")
 
-    # Final Test Holdout Evaluation (Locked Winner + Baselines, refit on 2019-2020, evaluated on 2021)
+    # Final Test Holdout Evaluation (Locked Winner + Prespecified Baselines, refit on 2019-2020, evaluated on 2021)
     train_full = pd.concat([train, valid])
     print(f"Evaluating Locked Winner & Baselines on 2021 Holdout ({len(test):,} rows):")
     print("-" * 70)
-    for m in ["Foundation median", "Global median"]:
+    for m in dict.fromkeys([winner, "Foundation median", "Global median"]):
         p_test = fit_and_predict(m, train_full, test)
         res_test = compute_metrics(test.AWARD, p_test)
         print(f"{m:<28} | Test MAE: ${res_test['MAE_USD']:>10,.0f} | RMSE: ${res_test['RMSE_USD']:>10,.0f} | R2: {res_test['R2']:>6.3f}")

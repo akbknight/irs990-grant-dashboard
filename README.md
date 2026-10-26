@@ -72,9 +72,9 @@ flowchart TD
 - Foundation HQ beacons with pulsing dynamic ripple rings.
 - Live camera orbit telemetry readout (`LAT`, `LNG`, `ALT`) and 1-click orbital presets (`U.S. Domestic`, `Israel Gateway`, `Global Outflows`, `NYC Epicenter`).
 
-### 2. 📈 Econometric Outlier Matrix & Empirical Scaling Baseline
+### 2. 📈 Institutional Scaling Matrix & Descriptive Baseline
 - Logarithmic distribution of **Institutional Capitalization vs. Average Grant Size** anchored by an empirical **log-linear OLS scaling trendline** ($\log_{10} 	ext{Mean Grant} = lpha + eta \log_{10} 	ext{Capital}$, $eta \approx 0.83$, $R^2 \approx 0.28$).
-- Objective outlier detection: mathematically differentiates **Mega-Grant Outliers** (institutions plotting substantially above the scaling baseline, such as Marcus Foundation at $1.55M avg grant) from **High-Frequency Distributors** (institutions plotting below the baseline, such as Jewish Communal Fund).
+- Descriptive comparison: differentiates institutions plotting above the scaling baseline (higher mean award, such as Marcus Foundation at $1.55M avg grant) from high-frequency distributors plotting below (such as Jewish Communal Fund). *Note: This is an informal descriptive scaling comparison across ~30+ aggregate entities, not a formal studentized residual outlier test.*
 - Interactive point-click trigger opening the forensic inspection sheet for any selected entity.
 
 ### 3. 🗺️ D3.js National Choropleth Heatmap
@@ -97,21 +97,22 @@ flowchart TD
 - Interactive year pills, sector selectors, state filters, and cohort toggles.
 - Active filter pill HUD with 1-click removal and instant CSV data export.
 
-### 7. 🔬 Empirical Predictive Modeling Benchmark (7 Regressors vs Baselines)
-- **Research Question:** Can foundation identity, category, and location predict next-year grant size better than simple historical medians?
-- **Dataset Scope:** 93,672 positive Form 990 grant records across 2019–2021 (Train: 2019 · Validation: 2020 · Holdout Test: 2021).
+### 7. 🔬 Empirical Predictive Modeling Benchmark (5-Element Case Study)
+- **Question:** Can foundation identity, category, and location predict next-year positive individual grant amounts better than simple historical medians?
+- **Evidence:** Local export of 93,672 raw Form 990 Schedule I grant records (93,638 positive records, 2019–2021; Train 2019: 49,547 · Val 2020: 23,583 · Test 2021: 20,508; 2,435 exact duplicates preserved). Chronologically evaluated 7 regression architectures against 2 empirical baselines.
 - **Candidate Benchmark (2020 Validation MAE):**
   1. *Foundation-Specific Historical Median (Baseline):* **$72,462** (Winner)
   2. *Log OLS Linear Regression:* **$72,635**
-  3. *Log Ridge Regression:* **$72,985**
-  4. *HistGradientBoosting (MAE loss):* **$74,325**
-  5. *HistGradientBoosting (Log target):* **$74,796**
+  3. *Log Ridge Regression ($\alpha=10$):* **$72,985**
+  4. *HistGradientBoosting (MAE loss):* **$74,352**
+  5. *HistGradientBoosting (Log target):* **$74,624**
   6. *Extra Trees (Log target):* **$75,775**
   7. *Random Forest (Log target):* **$75,826**
   8. *Global Median Baseline:* **$76,889**
-  9. *Raw Target Ridge:* **$102,106**
-- **Test Holdout Result (2021):** Foundation median beats global median by **$6,351 per award (+6.9% MAE reduction)**, but overall MAE remains **$86,013** against a median grant of $10,000 ($R^2 \approx 0.022$). Errors degrade to **$94,058 MAE** on new, unseen foundations (31.7% of records).
-- **Defensible Decision:** **Do NOT deploy regression as an automated predictive grant budgeter.** The dashboard is properly positioned for historical exploration, concentration-risk analysis, and institutional transparency.
+  9. *Raw Target Ridge ($\alpha=10$):* **$102,106**
+- **Result:** The foundation historical median won on validation MAE ($72,462). On the 2021 test holdout (20,508 rows), the foundation median reduced MAE by **6.9% ($6,351 per award)** vs a global median ($86,013 vs $92,365), but absolute test error remained **$86,013 MAE** with $R^2 \approx 0.022$ alongside a median grant of $10,000. On unseen foundations (31.7% of test records), error worsened to **$94,058 MAE** ($R^2 = -0.025$).
+- **Recommendation:** **Do NOT deploy regression as an automated predictive grant budgeter.** The platform is best suited for historical research, spatial exploration, and concentration analysis.
+- **Limitation:** Findings apply strictly to the local 2019–2021 export (not the full IRS population). Features exclude narrative proposals, multi-year asset histories, and recipient balance sheets. The scatter trendline is an aggregate institutional descriptive baseline, not an individual transaction predictor, and does not compute studentized residuals to establish formal statistical outliers.
 - **Reproducibility:** Run `py -3.12 scripts/evaluate_models.py` or inspect [`reports/regression_modeling_audit.md`](reports/regression_modeling_audit.md).
 
 
