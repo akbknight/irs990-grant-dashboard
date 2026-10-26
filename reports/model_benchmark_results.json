@@ -1,0 +1,118 @@
+{
+  "dataset_summary": {
+    "total_positive_records": 93638,
+    "train_records_2019": 49547,
+    "val_records_2020": 23583,
+    "test_records_2021": 20508,
+    "test_median_award_usd": 10000.0
+  },
+  "validation_benchmark": [
+    {
+      "model": "Global median",
+      "MAE_USD": 76888.93062799475,
+      "RMSE_USD": 508417.98677422974,
+      "R2": -0.01940720022754583,
+      "log_RMSE": 2.116538822867482
+    },
+    {
+      "model": "Foundation median",
+      "MAE_USD": 72462.42566679388,
+      "RMSE_USD": 501039.9020337605,
+      "R2": 0.009965084459285456,
+      "log_RMSE": 1.892057908270554
+    },
+    {
+      "model": "OLS log",
+      "MAE_USD": 72635.15680472717,
+      "RMSE_USD": 501025.9921533018,
+      "R2": 0.010020054437165915,
+      "log_RMSE": 1.833733308464378
+    },
+    {
+      "model": "Ridge raw",
+      "MAE_USD": 102106.04287709638,
+      "RMSE_USD": 491123.9124356126,
+      "R2": 0.04876451305972074,
+      "log_RMSE": 3.636044011040165
+    },
+    {
+      "model": "Ridge log",
+      "MAE_USD": 72984.51823082982,
+      "RMSE_USD": 503326.2290319671,
+      "R2": 0.0009090870944457041,
+      "log_RMSE": 1.834351471341684
+    },
+    {
+      "model": "Random forest log",
+      "MAE_USD": 75826.00646129182,
+      "RMSE_USD": 507291.3894082497,
+      "R2": -0.014894421114956868,
+      "log_RMSE": 2.038158896329002
+    },
+    {
+      "model": "Extra trees log",
+      "MAE_USD": 75775.06794429943,
+      "RMSE_USD": 507203.91670403973,
+      "R2": -0.01454445299985907,
+      "log_RMSE": 2.044541825258311
+    },
+    {
+      "model": "Histogram boosting log",
+      "MAE_USD": 74624.29226316207,
+      "RMSE_USD": 506021.11680583627,
+      "R2": -0.00981813353646599,
+      "log_RMSE": 1.9742376508833503
+    },
+    {
+      "model": "Histogram boosting MAE",
+      "MAE_USD": 74352.2405334265,
+      "RMSE_USD": 505914.0786434993,
+      "R2": -0.00939096699448072,
+      "log_RMSE": 1.9968242438886803
+    }
+  ],
+  "validation_winner": "Foundation median",
+  "holdout_test_benchmark": [
+    {
+      "model": "Foundation median",
+      "MAE_USD": 86013.48193387946,
+      "RMSE_USD": 521912.72652801016,
+      "R2": 0.02194710597388716,
+      "log_RMSE": 1.9420967036796046
+    },
+    {
+      "model": "Global median",
+      "MAE_USD": 92364.55197971524,
+      "RMSE_USD": 534711.641457948,
+      "R2": -0.026610843979822718,
+      "log_RMSE": 2.1814885963903596
+    }
+  ],
+  "generalization_segments": {
+    "seen_foundations": {
+      "rows": 13999,
+      "share_pct": 68.26116637409791,
+      "MAE_USD": 82272.97510536468,
+      "RMSE_USD": 501305.22952272376,
+      "R2": 0.047402661422299985,
+      "log_RMSE": 1.730229831627822
+    },
+    "unseen_foundations": {
+      "rows": 6509,
+      "share_pct": 31.738833625902085,
+      "MAE_USD": 94058.24381625441,
+      "RMSE_USD": 563686.7693155725,
+      "R2": -0.024636068847957437,
+      "log_RMSE": 2.333471825538869
+    }
+  },
+  "computed_takeaway": {
+    "winner_model": "Foundation median",
+    "winner_test_mae": 86013.48193387946,
+    "global_test_mae": 92364.55197971524,
+    "mae_reduction_usd": 6351.070045835775,
+    "pct_reduction": 6.87609035036577,
+    "winner_test_r2": 0.02194710597388716,
+    "test_median_award": 10000.0
+  }
+}
